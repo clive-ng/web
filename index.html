@@ -13,9 +13,35 @@
   }
   html,body { height:100%; margin:0; }
   body {
-    font-family: var(--font-sans);
-    background:#fff;
-    color:#ababab;
+
+  <!-- JSON display: fetch sandwich.json (placed next to index.html) and show it here -->
+  <pre id="json-output" style="white-space:pre-wrap; background:#f7f7f7; padding:12px; border-radius:6px; color:#111; max-width:900px; margin: 2rem auto;">Loading JSON...</pre>
+
+  <script>
+    (function(){
+      const out = document.getElementById('json-output');
+      if (!out) return;
+
+      // Path to your JSON file relative to index.html
+      const jsonPath = 'sandwich.json';
+
+      // Try to fetch the JSON and pretty-print it
+      fetch(jsonPath)
+        .then(resp => {
+          if (!resp.ok) throw new Error(resp.status + ' ' + resp.statusText);
+          return resp.json();
+        })
+        .then(data => {
+          out.textContent = JSON.stringify(data, null, 2);
+        })
+        .catch(err => {
+          out.textContent = 'Error loading JSON ("' + jsonPath + '"): ' + err;
+        });
+    })();
+  </script>
+
+  </body>
+  </html>
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-y: scroll;
