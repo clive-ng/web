@@ -80,7 +80,7 @@
 }
 
 .content {
-  border-left: 1px solid #000;
+  border-left: 1px solid #0080ff;
   width: 100%;
   padding-top: 30px;
   padding-left: 30px;
@@ -89,7 +89,6 @@
 }
 
 .content._01 {
-  border: 1px solid #00f;
   display: block;
 }
 
