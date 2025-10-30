@@ -142,7 +142,7 @@ img {
 }
 
 .inside._01.slider {
-  height: 100vh;
+  height: 100%;
   margin-bottom: 0;
   padding: 0;
 }
@@ -166,7 +166,6 @@ img {
   align-items: flex-start;
   width: 100%;
   height: auto;
-  margin-bottom: auto;
   padding-bottom: 0;
   padding-left: 30px;
   padding-right: 30px;
@@ -219,8 +218,8 @@ img {
 .slider {
   background-color: #fff0;
   height: auto;
-  margin-bottom: auto;
-  padding-top: 0;
+  margin-bottom: 0;
+  display: block;
 }
 
 .icon {
@@ -240,9 +239,15 @@ img {
 .left-arrow {
   grid-column-gap: 0px;
   grid-row-gap: 0px;
+  flex-flow: row;
+  grid-template-rows: auto auto;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-columns: 1fr;
   justify-content: flex-start;
   align-items: center;
+  height: 100vh;
   margin-left: 0;
+  margin-right: 0;
   padding-left: 10px;
   display: flex;
   position: absolute;
@@ -274,11 +279,13 @@ img {
   aspect-ratio: auto;
   object-fit: none;
   height: 100%;
-  margin-top: auto;
+  margin-top: 0;
   overflow: auto;
 }
 
 .slide-2 {
+  height: 11%;
+  padding-top: 0;
   position: static;
 }
 
@@ -299,9 +306,10 @@ img {
 }
 
 .detail-image {
-  width: 100%;
+  width: 100vw;
   margin-top: 30px;
   margin-bottom: 30px;
+  padding-right: 30px;
 }
 
 .image-12, .image-13 {
@@ -392,7 +400,7 @@ img {
 }
 
 .image-10 {
-  width: auto;
+  width: 100vw;
   margin-top: 30px;
   margin-bottom: 0;
 }
@@ -426,7 +434,7 @@ img {
 }
 
 .interactive {
-  width: 100%;
+  width: 100vw;
   margin-top: 30px;
   display: block;
 }
@@ -623,7 +631,13 @@ img {
   margin-top: 30px;
 }
 
-.image-41, .image-42 {
+.image-41 {
+  width: 100vw;
+  margin-top: auto;
+  padding-right: 30px;
+}
+
+.image-42 {
   margin-top: auto;
 }
 
@@ -732,8 +746,20 @@ img {
   display: grid;
 }
 
-.mask, .mask-2, .mask-3 {
+.mask {
   padding-top: 30px;
+}
+
+.mask-2 {
+  border-radius: 0;
+  height: 100vh;
+  padding-top: 30px;
+  padding-bottom: 30px;
+}
+
+.mask-3 {
+  padding-top: 30px;
+  padding-bottom: 30px;
 }
 
 .div-block-17 {
@@ -753,7 +779,7 @@ img {
 }
 
 .fest {
-  background-image: url('../images/image_12.png');
+  background-image: url('../images/image_7.png');
   background-position: 50%;
   background-size: cover;
   width: 100%;
@@ -765,7 +791,7 @@ img {
 }
 
 .fest._03 {
-  background-image: url('../images/image-1_12.png');
+  background-image: url('../images/image-1_9.png');
 }
 
 .fest._04 {
@@ -825,9 +851,10 @@ img {
 }
 
 .mask-4 {
-  margin-top: 30px;
-  margin-bottom: auto;
-  padding-bottom: 0;
+  height: 100vh;
+  margin-top: 0;
+  padding-top: 30px;
+  padding-bottom: 30px;
 }
 
 .div-block-19 {
