@@ -1,8 +1,0 @@
-The following files failed to download during site export. Please check them in the designer assets view (images) or dashboard (fonts).
-
-images/WS01a-p-2600.jpeg
-images/WS01a-p-3200.jpeg
-images/image-19_1.png
-images/image-21_1.png
-images/image-5_6.png
-images/image-6_6.png

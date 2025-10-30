@@ -107,7 +107,7 @@ img {
 .bodytext {
   color: #00f;
   overflow-wrap: break-word;
-  border: 1px solid #fff;
+  border: 0 #fff;
   margin-top: 0;
   margin-bottom: 0;
   font-family: Montserrat, sans-serif;
@@ -118,7 +118,7 @@ img {
   margin-bottom: 30px;
 }
 
-.bodytext.top {
+.bodytext.top, .bodytext.play {
   margin-top: 30px;
 }
 
@@ -161,14 +161,17 @@ img {
   display: flex;
 }
 
-.div-block.teaching {
+.div-block.playground {
+  z-index: 1000;
   justify-content: flex-start;
   align-items: flex-start;
   width: 100%;
   height: auto;
+  margin-top: 0;
   padding-bottom: 0;
   padding-left: 30px;
   padding-right: 30px;
+  position: fixed;
 }
 
 .div-block-2 {
@@ -237,6 +240,8 @@ img {
 }
 
 .left-arrow {
+  z-index: 10;
+  box-sizing: border-box;
   grid-column-gap: 0px;
   grid-row-gap: 0px;
   flex-flow: row;
@@ -251,6 +256,8 @@ img {
   padding-left: 10px;
   display: flex;
   position: absolute;
+  inset: 0% auto auto 0%;
+  overflow: hidden;
 }
 
 .right-arrow {
@@ -309,7 +316,6 @@ img {
   width: 100vw;
   margin-top: 30px;
   margin-bottom: 30px;
-  padding-right: 30px;
 }
 
 .image-12, .image-13 {
@@ -567,7 +573,9 @@ img {
                  ". ."
                  / 1fr 1fr 1fr;
   grid-auto-flow: row;
-  margin: 30px;
+  width: 100%;
+  margin-top: 30px;
+  margin-bottom: 30px;
 }
 
 .container-2 {
@@ -598,13 +606,13 @@ img {
 }
 
 .image-38 {
-  background-image: url('../images/image-1.png');
+  background-image: url('../images/image-1_1.png');
   background-position: 0 0;
   background-size: auto;
 }
 
 .link-block-12 {
-  background-image: url('../images/image-1.png');
+  background-image: url('../images/image-1_1.png');
   background-position: 50%;
   background-size: cover;
 }
@@ -748,6 +756,11 @@ img {
 
 .mask {
   padding-top: 30px;
+  padding-bottom: 30px;
+}
+
+.mask.play {
+  padding-top: 0;
 }
 
 .mask-2 {
@@ -857,7 +870,7 @@ img {
   padding-bottom: 30px;
 }
 
-.div-block-19 {
+.jswindoe {
   width: 100%;
   height: 100vh;
 }
@@ -895,6 +908,39 @@ img {
   margin-right: 30px;
 }
 
+.text-grid {
+  grid-column-gap: 30px;
+  grid-row-gap: 30px;
+  grid-template-rows: auto;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-columns: 1fr;
+  width: 100%;
+  display: grid;
+}
+
+.code-embed-4 {
+  z-index: -1;
+  position: relative;
+  inset: 0%;
+}
+
+.rednering {
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
+.code-embed-5 {
+  height: 100vh;
+}
+
+.slide-copy {
+  aspect-ratio: auto;
+  object-fit: none;
+  height: 100%;
+  margin-top: 0;
+  overflow: auto;
+}
+
 @media screen and (max-width: 991px) {
   .heading-jumbo {
     font-size: 56px;
@@ -926,7 +972,7 @@ img {
     flex-flow: column;
   }
 
-  .div-block.teaching {
+  .div-block.playground {
     width: auto;
   }
 
