@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--  Last Published: Thu Oct 30 2025 16:32:51 GMT+0000 (Coordinated Universal Time)  -->
+<!DOCTYPE html><!--  Last Published: Fri Oct 31 2025 00:30:58 GMT+0000 (Coordinated Universal Time)  -->
 <html data-wf-page="69007a4400b624c118bfeaf1" data-wf-site="68fd529f6f6ca9f3c1295285">
 <head>
   <meta charset="utf-8">
@@ -56,51 +56,51 @@
           <div class="div-block playground">
             <div class="bodytext play">Bubble</div>
           </div>
-          <div class="html">
-            <div class="code-embed-4 w-embed w-script">
-              <div id="p5-container" style="width: 100%; height: 100vh;"></div>
-              <script>
-let bubble = [];
+          <div class="code-embed-4 w-embed w-script">
+            <div id="p5-container" style="width: 100%; height: 100vh;"></div>
+            <script>
+let bubbles = [];
 function setup() {
   let canvas = createCanvas(windowWidth, windowHeight);
-  canvas.parent('p5-container'); // attach canvas to the div
+  canvas.parent('p5-container');
   for (let i = 0; i < 4000; i++) {
-    bubble[i] = {
+    bubbles[i] = {
       x: width / 2,
       y: height / 2,
-      display: function() {
-        stroke(0,0,255); // black circles
+      display: function(size) {
+        stroke(0, 0, 255);
         noFill();
-        ellipse(this.x, this.y, 30, 30);
+        ellipse(this.x, this.y, size, size);
       },
-      move: function() {
-        this.x += random(-3, 3);
-        this.y += random(-3, 3);
+      move: function(speed) {
+        this.x += random(-speed, speed);
+        this.y += random(-speed, speed);
       }
-    }
+    };
   }
 }
 function draw() {
-  background(255); // white background
-  for (let i = 0; i < bubble.length; i++) {
-    bubble[i].move();
-    bubble[i].display();
+  background(255);
+  // Map mouse position to speed and size
+  let speed = map(mouseX, 0, width, 0.5, 10);
+  let size = map(mouseY, 0, height, 5, 60);
+  for (let i = 0; i < bubbles.length; i++) {
+    bubbles[i].move(speed);
+    bubbles[i].display(size);
   }
 }
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
 }
 </script>
-            </div>
           </div>
         </div>
         <div class="slide w-slide">
           <div class="div-block playground">
             <div class="bodytext play">Lunch</div>
           </div>
-          <div class="jswindoe">
-            <div class="w-embed w-script">
-              <style>
+          <div class="code-embed-6 w-embed w-script">
+            <style>
   html, body {
     margin: 0;
     padding: 0;
@@ -175,11 +175,11 @@ function windowResized() {
     }
   }
 </style>
-              <section>
-                <p id="foodText">🍔</p>
-                <button id="changeBtn">Lunch idea</button>
-              </section>
-              <script>
+            <section>
+              <p id="foodText">🍔</p>
+              <button id="changeBtn">Lunch idea</button>
+            </section>
+            <script>
   const foods = [
     "Pizza 🍕",
     "Sushi 🍣",
@@ -219,7 +219,6 @@ function windowResized() {
     textElement.textContent = randomFood;
   });
 </script>
-            </div>
           </div>
         </div>
         <div class="slide-copy w-slide">
@@ -232,7 +231,6 @@ function windowResized() {
     position: relative;
     width: 100%;
     height: 100vh;
-    padding-bottom: 56.25%; /* 16:9 ratio - adjust as needed */
   }
   .responsive-iframe-wrapper iframe {
     position: absolute;
@@ -269,6 +267,59 @@ function windowResized() {
 </style>
             <div class="responsive-iframe-wrapper">
               <iframe src="https://idgrid.lovable.app/" frameborder="0" allowfullscreen=""></iframe>
+            </div>
+          </div>
+        </div>
+        <div class="slide-copy w-slide">
+          <div class="div-block playground">
+            <div class="bodytext play">SHKP APP</div>
+          </div>
+          <div class="div-block-25">
+            <div class="div-block-24 _100">
+              <div class="iphone">
+                <div class="code-embed-5 shk w-embed w-iframe">
+                  <style>
+  .responsive-iframe-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    padding-bottom: 56.25%; /* 16:9 ratio - adjust as needed */
+  }
+  .responsive-iframe-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+</style>
+                  <div class="responsive-iframe-wrapper">
+                    <iframe src="https://clive-ng.github.io/shkp-app/en.html" frameborder="0" allowfullscreen=""></iframe>
+                  </div>
+                </div>
+              </div>
+              <div class="iphone ipad">
+                <div class="code-embed-5 shk w-embed w-iframe">
+                  <style>
+  .responsive-iframe-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    padding-bottom: 56.25%; /* 16:9 ratio - adjust as needed */
+  }
+  .responsive-iframe-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+</style>
+                  <div class="responsive-iframe-wrapper">
+                    <iframe src="https://clive-ng.github.io/shkp-app/en.html" frameborder="0" allowfullscreen=""></iframe>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
