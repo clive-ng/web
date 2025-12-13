@@ -1101,6 +1101,19 @@ img {
   height: auto;
 }
 
+.background-video {
+  text-overflow: clip;
+  background-color: #fff0;
+  margin-top: 30px;
+}
+
+.div-block-27 {
+  background-image: url('https://d3e54v103j8qbb.cloudfront.net/img/background-image.svg');
+  background-position: 0 0;
+  background-size: auto;
+  height: 400px;
+}
+
 @media screen and (max-width: 991px) {
   .heading-jumbo {
     font-size: 56px;
