@@ -257,6 +257,7 @@ img {
   grid-auto-columns: 1fr;
   justify-content: flex-start;
   align-items: center;
+  width: 30px;
   height: 100vh;
   margin-left: 0;
   margin-right: 0;
@@ -272,6 +273,7 @@ img {
   grid-row-gap: 0px;
   justify-content: flex-end;
   align-items: center;
+  width: 30px;
   margin-right: 0;
   padding-right: 10px;
   display: flex;
