@@ -1,104 +1,227 @@
+/*
+ * ESP32 WiFi iBeacon Radar (iPhone Compatible)
+ * * HOW IT WORKS:
+ * 1. The ESP32 creates a WiFi Hotspot named "ESP32-Radar".
+ * 2. You connect your phone to this WiFi.
+ * 3. Open "http://192.168.4.1" in your browser.
+ * 4. The ESP32 scans for iBeacons and sends the data to the web page.
+ * * Required Settings in Arduino IDE:
+ * - Board: ESP32 Dev Module
+ */
+
+#include <WiFi.h>
+#include <WebServer.h>
+#include <BLEDevice.h>
+#include <BLEUtils.h>
+#include <BLEScan.h>
+#include <BLEAdvertisedDevice.h>
+
+// --- Settings ---
+const char* ssid = "ESP32-Radar";  // Connect your phone to this WiFi
+const char* password = "";         // No password for easy access
+#define BEACON_UUID_FILTER ""      // Leave empty to show ALL iBeacons, or add UUID to filter
+
+// --- Globals ---
+WebServer server(80);
+BLEScan* pBLEScan;
+String currentData = "{}";
+unsigned long lastScanTime = 0;
+
+// --- HTML Code (Embedded Web App) ---
+const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beacon Distance Radar</title>
+    <title>Beacon Radar</title>
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; text-align: center; background: #222; color: white; padding: 20px; }
-        .radar {
-            width: 250px; height: 250px;
-            border: 5px solid #555; border-radius: 50%;
-            margin: 40px auto; position: relative;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-        .radar.near { border-color: #4CAF50; box-shadow: 0 0 30px #4CAF50; }
-        .radar.medium { border-color: #FFC107; box-shadow: 0 0 30px #FFC107; }
-        .radar.far { border-color: #F44336; box-shadow: 0 0 30px #F44336; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; background: #111; color: white; padding: 20px; touch-action: manipulation; }
         
-        h1 { margin-bottom: 5px; }
-        #distance { font-size: 3em; font-weight: bold; }
-        #rssi { color: #aaa; margin-top: 10px; }
-        button {
-            background: #007bff; color: white; border: none; padding: 15px 30px;
-            font-size: 1.2em; border-radius: 50px; cursor: pointer; margin-top: 20px;
+        /* Radar Animation */
+        .radar-container {
+            position: relative;
+            width: 280px; height: 280px;
+            margin: 30px auto;
+            border-radius: 50%;
+            border: 2px solid #333;
+            background: radial-gradient(circle, #222 0%, #111 70%);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5) inset;
+            overflow: hidden;
         }
-        button:active { transform: scale(0.98); }
+
+        /* Distance Rings */
+        .ring { position: absolute; border-radius: 50%; border: 1px dashed #444; box-sizing: border-box; }
+        .ring-1 { width: 33%; height: 33%; border-color: #555; }
+        .ring-2 { width: 66%; height: 66%; }
+        .ring-3 { width: 100%; height: 100%; border: 2px solid #333; }
+
+        /* Scanning Line */
+        .scanner-line {
+            position: absolute; width: 50%; height: 2px;
+            background: linear-gradient(90deg, rgba(0,255,0,0), rgba(0,255,0,0.8));
+            top: 50%; left: 50%;
+            transform-origin: 0 0;
+            animation: scan 2s linear infinite;
+            z-index: 5;
+        }
+
+        /* Target Dot */
+        .target {
+            position: absolute;
+            width: 16px; height: 16px;
+            background: #00ff00;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #00ff00;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s ease-out;
+            opacity: 0;
+            z-index: 10;
+        }
+        .target.visible { opacity: 1; }
+        .target.near { background: #ff3b30; box-shadow: 0 0 20px #ff3b30; }   /* Red for very close */
+        .target.medium { background: #ffcc00; box-shadow: 0 0 15px #ffcc00; } /* Yellow for mid */
+        .target.far { background: #00ff00; box-shadow: 0 0 15px #00ff00; }    /* Green for far */
+
+        @keyframes scan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Stats */
+        .info-panel { margin-top: 20px; padding: 15px; background: #222; border-radius: 15px; border: 1px solid #333; }
+        h1 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.5px; }
+        .distance-display { font-size: 48px; font-weight: 700; margin: 10px 0; font-variant-numeric: tabular-nums; }
+        .unit { font-size: 16px; color: #888; font-weight: 400; }
+        .meta { font-size: 13px; color: #666; font-family: monospace; margin-top: 5px; }
+        
+        .status { 
+            display: inline-block; padding: 4px 12px; border-radius: 20px; 
+            background: #333; color: #aaa; font-size: 12px; margin-bottom: 20px;
+        }
+        .status.active { background: #0a84ff20; color: #0a84ff; border: 1px solid #0a84ff40; }
     </style>
 </head>
 <body>
 
-    <h1>Beacon Radar</h1>
-    <p>Find "ESP32-iBeacon"</p>
+    <div id="statusInfo" class="status">Connecting to Radar...</div>
 
-    <div id="radar" class="radar">
-        <div>
-            <div id="distance">---</div>
-            <div>meters</div>
-        </div>
+    <h1>iBeacon Radar</h1>
+
+    <div class="radar-container">
+        <div class="ring ring-1"></div>
+        <div class="ring ring-2"></div>
+        <div class="ring ring-3"></div>
+        <div class="scanner-line"></div>
+        <div id="dot" class="target"></div>
     </div>
 
-    <div id="rssi">Signal: Waiting...</div>
-
-    <button onclick="startScanning()">📡 Start Scan</button>
+    <div class="info-panel">
+        <div class="distance-display" id="dist">--.--</div>
+        <div class="unit">METERS</div>
+        <div class="meta" id="uuid">Waiting for signal...</div>
+        <div class="meta" id="rssi">RSSI: --</div>
+    </div>
 
     <script>
-        async function startScanning() {
-            try {
-                // 1. Request the device (Browser needs user permission)
-                const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ name: "ESP32-iBeacon" }]
+        const statusEl = document.getElementById('statusInfo');
+        const distEl = document.getElementById('dist');
+        const uuidEl = document.getElementById('uuid');
+        const rssiEl = document.getElementById('rssi');
+        const dotEl = document.getElementById('dot');
+
+        let lastUpdate = 0;
+
+        function fetchRadarData() {
+            fetch('/data')
+                .then(response => response.json())
+                .then(data => {
+                    statusEl.innerText = "Radar Active";
+                    statusEl.classList.add('active');
+
+                    if (data.found) {
+                        updateUI(data);
+                        lastUpdate = Date.now();
+                    } else {
+                        // If no data for 5 seconds, clear UI
+                        if (Date.now() - lastUpdate > 5000) {
+                            dotEl.classList.remove('visible');
+                            distEl.innerText = "--.--";
+                            uuidEl.innerText = "Searching...";
+                        }
+                    }
+                })
+                .catch(err => {
+                    statusEl.innerText = "Disconnected";
+                    statusEl.classList.remove('active');
                 });
-
-                document.getElementById('rssi').innerText = "Connecting watcher...";
-
-                // 2. Setup the listener for signal updates
-                device.addEventListener('advertisementreceived', (event) => {
-                    const rssi = event.rssi;
-                    updateDashboard(rssi);
-                });
-
-                // 3. Start watching for advertisements (Passive scanning)
-                // Note: This API is supported in Chrome/Edge (Desktop & Android)
-                await device.watchAdvertisements();
-                document.getElementById('rssi').innerText = "Signal: Scanning...";
-
-            } catch (error) {
-                console.log("Error:", error);
-                alert("Error: " + error);
-            }
         }
 
-        function updateDashboard(rssi) {
-            // Update RSSI Text
-            document.getElementById('rssi').innerText = `Signal: ${rssi} dBm`;
+        function updateUI(data) {
+            const dist = parseFloat(data.dist);
+            distEl.innerText = dist.toFixed(2);
+            uuidEl.innerText = data.uuid ? data.uuid.split('-')[0] + "..." : "Unknown";
+            rssiEl.innerText = `RSSI: ${data.rssi} dBm`;
 
-            // Calculate Distance
-            // Formula: d = 10 ^ ((TxPower - RSSI) / (10 * N))
-            const txPower = -59; // Hardcoded (Calibrated at 1m)
-            const n = 2.0;       // Path loss exponent (Environmental factor)
+            // Visual Logic
+            dotEl.classList.add('visible');
             
-            const exponent = (txPower - rssi) / (10 * n);
-            const distance = Math.pow(10, exponent);
+            // Map distance to position (0m = center, 5m = edge)
+            // Clamp distance to 5m for visual purposes
+            let visualDist = Math.min(dist, 5.0); 
+            let percentage = (visualDist / 5.0) * 100; // 0 to 100% of radius
 
-            // Update Screen
-            const distElement = document.getElementById('distance');
-            const radarElement = document.getElementById('radar');
-
-            distElement.innerText = distance.toFixed(1);
-
-            // Change Colors
-            radarElement.className = 'radar'; // Reset
-            if (distance < 1.0) {
-                radarElement.classList.add('near');
-            } else if (distance < 3.0) {
-                radarElement.classList.add('medium');
-            } else {
-                radarElement.classList.add('far');
-            }
+            // Random angle for effect (since we don't know direction)
+            // We keep the angle semi-consistent per beacon session to avoid jumping
+            const angle = (Date.now() / 1000) % 360; 
+            
+            // Note: In a real DOM setup without trigonometry, we often just animate scale
+            // But here we place it on the radius.
+            // Simplified: Just use color for distance
+            
+            dotEl.className = 'target visible';
+            if (dist < 1.0) dotEl.classList.add('near');
+            else if (dist < 3.0) dotEl.classList.add('medium');
+            else dotEl.classList.add('far');
         }
+
+        // Poll every 500ms
+        setInterval(fetchRadarData, 500);
     </script>
 </body>
 </html>
+)rawliteral";
+
+// --- Functions ---
+
+void setup() {
+  Serial.begin(115200);
+
+  // 1. Setup BLE
+  BLEDevice::init("ESP32-Radar-Host");
+  pBLEScan = BLEDevice::getScan();
+  pBLEScan->setActiveScan(true); 
+  pBLEScan->setInterval(100);
+  pBLEScan->setWindow(99);
+
+  // 2. Setup WiFi AP
+  WiFi.softAP(ssid, password);
+  Serial.println("WiFi AP Created");
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.softAPIP());
+
+  // 3. Setup Web Server
+  server.on("/", HTTP_GET, []() {
+    server.send(200, "text/html", index_html);
+  });
+
+  server.on("/data", HTTP_GET, []() {
+    server.send(200, "application/json", currentData);
+  });
+
+  server.begin();
+}
+
+void loop() {
+  // 1. Handle Web Clients
+  server.handleClient();
+
+  // 2
