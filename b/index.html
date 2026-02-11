@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beacon Distance Radar</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; text-align: center; background: #222; color: white; padding: 20px; }
+        .radar {
+            width: 250px; height: 250px;
+            border: 5px solid #555; border-radius: 50%;
+            margin: 40px auto; position: relative;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .radar.near { border-color: #4CAF50; box-shadow: 0 0 30px #4CAF50; }
+        .radar.medium { border-color: #FFC107; box-shadow: 0 0 30px #FFC107; }
+        .radar.far { border-color: #F44336; box-shadow: 0 0 30px #F44336; }
+        
+        h1 { margin-bottom: 5px; }
+        #distance { font-size: 3em; font-weight: bold; }
+        #rssi { color: #aaa; margin-top: 10px; }
+        button {
+            background: #007bff; color: white; border: none; padding: 15px 30px;
+            font-size: 1.2em; border-radius: 50px; cursor: pointer; margin-top: 20px;
+        }
+        button:active { transform: scale(0.98); }
+    </style>
+</head>
+<body>
+
+    <h1>Beacon Radar</h1>
+    <p>Find "ESP32-iBeacon"</p>
+
+    <div id="radar" class="radar">
+        <div>
+            <div id="distance">---</div>
+            <div>meters</div>
+        </div>
+    </div>
+
+    <div id="rssi">Signal: Waiting...</div>
+
+    <button onclick="startScanning()">📡 Start Scan</button>
+
+    <script>
+        async function startScanning() {
+            try {
+                // 1. Request the device (Browser needs user permission)
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ name: "ESP32-iBeacon" }]
+                });
+
+                document.getElementById('rssi').innerText = "Connecting watcher...";
+
+                // 2. Setup the listener for signal updates
+                device.addEventListener('advertisementreceived', (event) => {
+                    const rssi = event.rssi;
+                    updateDashboard(rssi);
+                });
+
+                // 3. Start watching for advertisements (Passive scanning)
+                // Note: This API is supported in Chrome/Edge (Desktop & Android)
+                await device.watchAdvertisements();
+                document.getElementById('rssi').innerText = "Signal: Scanning...";
+
+            } catch (error) {
+                console.log("Error:", error);
+                alert("Error: " + error);
+            }
+        }
+
+        function updateDashboard(rssi) {
+            // Update RSSI Text
+            document.getElementById('rssi').innerText = `Signal: ${rssi} dBm`;
+
+            // Calculate Distance
+            // Formula: d = 10 ^ ((TxPower - RSSI) / (10 * N))
+            const txPower = -59; // Hardcoded (Calibrated at 1m)
+            const n = 2.0;       // Path loss exponent (Environmental factor)
+            
+            const exponent = (txPower - rssi) / (10 * n);
+            const distance = Math.pow(10, exponent);
+
+            // Update Screen
+            const distElement = document.getElementById('distance');
+            const radarElement = document.getElementById('radar');
+
+            distElement.innerText = distance.toFixed(1);
+
+            // Change Colors
+            radarElement.className = 'radar'; // Reset
+            if (distance < 1.0) {
+                radarElement.classList.add('near');
+            } else if (distance < 3.0) {
+                radarElement.classList.add('medium');
+            } else {
+                radarElement.classList.add('far');
+            }
+        }
+    </script>
+</body>
+</html>
