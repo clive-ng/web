@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Controller</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; }
+        .box { border: 1px solid #ccc; padding: 20px; margin: 10px; border-radius: 10px; }
+        button { padding: 15px 30px; font-size: 18px; margin: 5px; cursor: pointer; }
+        #distance { font-size: 24px; font-weight: bold; color: #007bff; }
+        .red { background-color: #ffcccc; }
+        .green { background-color: #ccffcc; }
+    </style>
+</head>
+<body>
+
+    <h2>ESP32 Web Control</h2>
+    
+    <div class="box">
+        <button onclick="connectToDevice()">📡 Connect & Track</button>
+        <p>Status: <span id="status">Disconnected</span></p>
+    </div>
+
+    <div class="box">
+        <h3>Distance</h3>
+        <div id="distance">-- meters</div>
+        <p><small>RSSI: <span id="rssiVal">0</span> dBm</small></p>
+    </div>
+
+    <div class="box">
+        <h3>Control</h3>
+        <button class="green" onclick="sendCommand('1')">LED ON</button>
+        <button class="red" onclick="sendCommand('0')">LED OFF</button>
+    </div>
+
+    <script>
+        const serviceUUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+        const charUUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+        
+        let device, characteristic;
+        let txPower = -59; // RSSI at 1 meter (Calibrate this!)
+
+        async function connectToDevice() {
+            try {
+                document.getElementById('status').innerText = "Scanning...";
+                
+                device = await navigator.bluetooth.requestDevice({
+                    filters: [{ name: "ESP32_Distance_Tool" }],
+                    optionalServices: [serviceUUID]
+                });
+
+                document.getElementById('status').innerText = "Connecting...";
+                
+                // 1. Setup the connection for CONTROL
+                const server = await device.gatt.connect();
+                const service = await server.getPrimaryService(serviceUUID);
+                characteristic = await service.getCharacteristic(charUUID);
+
+                // 2. Setup the listener for DISTANCE (RSSI)
+                // Note: We use watchAdvertisements to update RSSI live
+                if (device.watchAdvertisements) {
+                    await device.watchAdvertisements();
+                    device.addEventListener('advertisementreceived', handleAdvertisement);
+                } else {
+                    alert("Your browser does not support RSSI updates!");
+                }
+
+                document.getElementById('status').innerText = "Connected!";
+                
+            } catch (error) {
+                console.log(error);
+                document.getElementById('status').innerText = "Error: " + error;
+            }
+        }
+
+        function handleAdvertisement(event) {
+            const rssi = event.rssi;
+            document.getElementById('rssiVal').innerText = rssi;
+            
+            // Calculate Distance
+            const n = 2.0; // Environmental factor (2.0 = outdoors, 3.0 = indoors)
+            const distance = Math.pow(10, (txPower - rssi) / (10 * n));
+            
+            document.getElementById('distance').innerText = distance.toFixed(2) + " m";
+        }
+
+        async function sendCommand(val) {
+            if (!characteristic) {
+                alert("Connect first!");
+                return;
+            }
+            const encoder = new TextEncoder();
+            await characteristic.writeValue(encoder.encode(val));
+        }
+    </script>
+</body>
+</html>
