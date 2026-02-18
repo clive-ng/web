@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Museum Interaction</title>
+    <style>
+        /* CSS - Students can replace this with Figma Export */
+        body {
+            font-family: 'Helvetica Neue', sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            transition: background-color 0.5s ease;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        h1 { font-size: 24px; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 30px; }
+
+        .btn {
+            background-color: #000;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 0;
+            width: 100%;
+        }
+
+        #distanceMeter {
+            font-size: 12px;
+            color: #999;
+            margin-top: 20px;
+        }
+
+        /* State Classes */
+        .near-object {
+            background-color: #ffeb3b; /* Reacts yellow when close */
+        }
+        
+        .connected {
+            border: 2px solid #4CAF50;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="uiCard">
+        <h1>Exhibit A</h1>
+        <p>Status: <span id="statusText">Disconnected</span></p>
+
+        <button class="btn" id="connectBtn">Connect to Artifact</button>
+        
+        <div id="controls" style="display:none;">
+            <button class="btn" id="toggleBtn">Toggle Light</button>
+        </div>
+
+        <div id="distanceMeter">Distance: Unknown</div>
+    </div>
+
+    <script>
+        // MUST match the UUIDs in the Arduino code
+        const serviceUUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+        const charUUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+
+        let device, server, service, characteristic;
+        let isLedOn = false;
+
+        const connectBtn = document.getElementById('connectBtn');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const statusText = document.getElementById('statusText');
+        const controls = document.getElementById('controls');
+        const distanceMeter = document.getElementById('distanceMeter');
+        const uiCard = document.getElementById('uiCard');
+
+        connectBtn.addEventListener('click', async () => {
+            try {
+                // 1. Request Device
+                device = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: [serviceUUID] }]
+                });
+
+                // 2. Connect to Server
+                server = await device.gatt.connect();
+                statusText.innerText = "Finding Service...";
+                
+                // 3. Get Service & Characteristic
+                service = await server.getPrimaryService(serviceUUID);
+                characteristic = await service.getCharacteristic(charUUID);
+
+                // 4. UI Updates
+                statusText.innerText = "Connected";
+                uiCard.classList.add('connected');
+                connectBtn.style.display = 'none';
+                controls.style.display = 'block';
+
+                // 5. Start Polling for Signal Strength (RSSI)
+                startRSSIPolling();
+
+            } catch (error) {
+                console.error(error);
+                statusText.innerText = "Failed: " + error;
+            }
+        });
+
+        toggleBtn.addEventListener('click', async () => {
+            if (!characteristic) return;
+            
+            // Send 1 or 0 to ESP32
+            const val = isLedOn ? "0" : "1"; 
+            
+            // TextEncoder converts string to bytes
+            const encoder = new TextEncoder();
+            await characteristic.writeValue(encoder.encode(val));
+            
+            isLedOn = !isLedOn; // Flip state
+        });
+
+        async function startRSSIPolling() {
+            // Loop every 1 second to check distance
+            setInterval(async () => {
+                if (device && device.gatt.connected) {
+                    // Note: RSSI is not always available in standard Web Bluetooth directly 
+                    // without a watchAdvertisements, but strictly speaking,
+                    // we usually fake "Reaction" in workshops by connection status 
+                    // OR simple active reading. 
+                    
+                    // *Simpler Approach for Students:* // Since standard web bluetooth RSSI polling is unstable in some browsers,
+                    // we will treat "Connected" as "Near". 
+                    
+                    // IF you need real RSSI, it requires the 'watchAdvertisements()' API 
+                    // which is newer. For this level, let's use a "Ping" visualizer
+                    // or just keep the connection active.
+                    
+                    distanceMeter.innerText = "Device is within range and connected.";
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
