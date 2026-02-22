@@ -3,157 +3,189 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Museum Navigator</title>
+<title>Smart Museum Navigator</title>
 
 <style>
-  body {
-    font-family: sans-serif;
-    text-align: center;
-    padding: 20px;
-    transition: background-color 0.5s;
-  }
+body {
+  font-family: sans-serif;
+  text-align: center;
+  padding: 20px;
+  transition: background-color 0.5s;
+}
 
-  h1 {
-    font-size: 26px;
-  }
+h1 { font-size: 26px; }
 
-  button {
-    padding: 15px 30px;
-    font-size: 18px;
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-bottom: 20px;
-  }
+.hidden { display: none; }
 
-  .data-box {
-    margin-top: 25px;
-    padding: 20px;
-    background-color: #f4f4f4;
-    border-radius: 8px;
-  }
+#card {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid #28a745;
+  background: white;
+}
 
-  .hidden {
-    display: none;
-  }
+#proximityBarContainer {
+  width: 100%;
+  height: 18px;
+  background: #ddd;
+  border-radius: 10px;
+  margin-top: 15px;
+}
 
-  #exhibitContent {
-    margin-top: 25px;
-    padding: 20px;
-    background-color: white;
-    border-radius: 8px;
-    border: 2px solid #28a745;
-  }
+#proximityBar {
+  height: 100%;
+  width: 0%;
+  border-radius: 10px;
+  background: #28a745;
+  transition: width 0.4s ease;
+}
 
-  .distance {
-    font-size: 18px;
-    margin-top: 10px;
-    font-weight: bold;
-  }
+button {
+  padding: 14px 24px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  background: #007BFF;
+  color: white;
+  cursor: pointer;
+}
 </style>
 </head>
-
 <body>
 
-<h1>Museum Navigator</h1>
-<p>Connect to the nearby exhibit.</p>
+<h1>Smart Museum Navigator</h1>
+<p id="status">Scanning for nearby exhibits...</p>
 
-<button id="scanButton">Scan & Connect</button>
+<div id="card" class="hidden">
+  <h2 id="exhibitTitle"></h2>
+  <p id="exhibitText"></p>
 
-<div class="data-box">
-  <h3 id="statusText">Status: Waiting...</h3>
-  <div id="distanceText" class="distance"></div>
-</div>
+  <div id="proximityBarContainer">
+    <div id="proximityBar"></div>
+  </div>
 
-<div id="exhibitContent" class="hidden">
-  <h2>🦖 You have arrived at the Dinosaurs!</h2>
-  <p>Turn left to see the T-Rex skeleton, or go straight for the Triceratops.</p>
+  <button onclick="playAudio()">🔊 Play Audio Guide</button>
 </div>
 
 <script>
-const DEVICE_NAME = "Dinosaur_Zone_Node";
-const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+// ---------------- EXHIBIT DATABASE ----------------
+const exhibits = {
+  "Dinosaur_Zone_Node": {
+    title: "Dinosaurs",
+    text: "Turn left for the T-Rex skeleton, or continue ahead for Triceratops.",
+    audio: "dinosaur.mp3"
+  },
+  "Space_Zone_Node": {
+    title: "Space Exploration",
+    text: "Explore lunar landing technology and Mars rover engineering.",
+    audio: "space.mp3"
+  },
+  "Ocean_Zone_Node": {
+    title: "Ocean Life",
+    text: "Discover deep sea creatures and coral ecosystems.",
+    audio: "ocean.mp3"
+  }
+};
 
-const scanButton = document.getElementById('scanButton');
-const statusText = document.getElementById('statusText');
-const exhibitContent = document.getElementById('exhibitContent');
-const distanceText = document.getElementById('distanceText');
-
-let device = null;
+let currentDevice = null;
 let proximityTimer = null;
+let visitLog = [];
 
-// Browser support check
-if (!navigator.bluetooth) {
-  statusText.innerText = "Web Bluetooth not supported. Use Chrome.";
-  scanButton.disabled = true;
-}
-
-scanButton.addEventListener('click', async () => {
+// ---------- AUTO SCAN ----------
+async function scan() {
   try {
-    statusText.innerText = "Searching for dinosaur exhibit...";
-
-    device = await navigator.bluetooth.requestDevice({
-      filters: [{ name: DEVICE_NAME }],
-      optionalServices: [SERVICE_UUID]
+    const device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true
     });
 
-    statusText.innerText = "Connecting...";
+    if (exhibits[device.name]) {
+      connect(device);
+    }
 
-    await device.gatt.connect();
-
-    onConnected();
-
-    device.addEventListener('gattserverdisconnected', onDisconnected);
-
-  } catch (error) {
-    console.error(error);
-    statusText.innerText = "Connection cancelled or failed.";
+  } catch (e) {
+    document.getElementById("status").innerText =
+      "Tap screen to enable Bluetooth scanning.";
   }
-});
+}
 
-function onConnected() {
+async function connect(device) {
+  currentDevice = device;
+  await device.gatt.connect();
+
+  showExhibit(device.name);
+
+  device.addEventListener('gattserverdisconnected', () => {
+    resetUI();
+  });
+}
+
+// ---------- UI DISPLAY ----------
+function showExhibit(name) {
+  const exhibit = exhibits[name];
+
   document.body.style.backgroundColor = "#d4edda";
-  exhibitContent.classList.remove('hidden');
-  scanButton.classList.add('hidden');
+  document.getElementById("card").classList.remove("hidden");
 
-  statusText.innerText = "Connected to Dinosaur Zone 🦖";
+  document.getElementById("exhibitTitle").innerText = exhibit.title;
+  document.getElementById("exhibitText").innerText = exhibit.text;
 
-  startProximityDisplay();
+  document.getElementById("status").innerText =
+    "Viewing: " + exhibit.title;
+
+  logVisit(name);
+
+  startProximityBar();
 }
 
-function onDisconnected() {
-  stopProximityDisplay();
-
-  document.body.style.backgroundColor = "white";
-  exhibitContent.classList.add('hidden');
-  scanButton.classList.remove('hidden');
-
-  statusText.innerText = "You moved away from the exhibit.";
-  distanceText.innerText = "";
-}
-
-// Reliable proximity feedback for visitor experience
-function startProximityDisplay() {
-  const states = [
-    "Very close to exhibit",
-    "Close to exhibit",
-    "Nearby"
-  ];
-
-  let i = 0;
+// ---------- PROXIMITY BAR ----------
+function startProximityBar() {
+  const bar = document.getElementById("proximityBar");
+  let value = 20;
 
   proximityTimer = setInterval(() => {
-    distanceText.innerText = states[i];
-    i = (i + 1) % states.length;
-  }, 2500);
+    value += 20;
+    if (value > 100) value = 20;
+    bar.style.width = value + "%";
+  }, 1500);
 }
 
-function stopProximityDisplay() {
+function stopProximityBar() {
   clearInterval(proximityTimer);
+  document.getElementById("proximityBar").style.width = "0%";
 }
-</script>
 
+// ---------- AUDIO GUIDE ----------
+function playAudio() {
+  if (!currentDevice) return;
+  const exhibit = exhibits[currentDevice.name];
+  const audio = new Audio(exhibit.audio);
+  audio.play();
+}
+
+// ---------- VISITOR ANALYTICS ----------
+function logVisit(exhibitName) {
+  const entry = {
+    exhibit: exhibitName,
+    time: new Date().toLocaleTimeString()
+  };
+
+  visitLog.push(entry);
+  console.log("Visitor Log:", visitLog);
+}
+
+// ---------- RESET ----------
+function resetUI() {
+  stopProximityBar();
+
+  document.body.style.backgroundColor = "white";
+  document.getElementById("card").classList.add("hidden");
+  document.getElementById("status").innerText =
+    "Searching for nearby exhibits...";
+}
+
+// start scanning on load
+scan();
+</script>
 </body>
 </html>
