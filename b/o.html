@@ -1,96 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Museum Wayfinding</title>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
+      transition: background-color 0.5s;
+    }
+
+    button {
+      padding: 15px 30px;
+      font-size: 18px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    .data-box {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #f4f4f4;
+      border-radius: 8px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #exhibitContent {
+      margin-top: 20px;
+      padding: 20px;
+      background-color: white;
+      border-radius: 8px;
+      border: 2px solid #28a745;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Museum Navigator</h1>
+<p>Click below to connect to the nearest exhibit.</p>
+
+<button id="scanButton">Scan & Connect</button>
+
+<div class="data-box">
+  <h3 id="statusText">Status: Waiting...</h3>
+</div>
+
+<div id="exhibitContent" class="hidden">
+  <h2>🦖 You have arrived at the Dinosaurs!</h2>
+  <p>Turn left to see the T-Rex skeleton, or go straight for the Triceratops.</p>
+</div>
+
 <script>
-    const ESP32_SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+const ESP32_SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
 
-    // --- NEW: The Smoothing Filter Array ---
-    let rssiHistory = [];
-    const MAX_HISTORY = 5; // Average the last 5 pings. Increase this number for more stability (but slower reaction time).
+const scanButton = document.getElementById('scanButton');
+const statusText = document.getElementById('statusText');
+const exhibitContent = document.getElementById('exhibitContent');
 
-    function calculateDistance(rssi) {
-      const txPower = -59; 
-      if (rssi === 0) return -1.0; 
-      const ratio = rssi * 1.0 / txPower;
-      if (ratio < 1.0) {
-        return Math.pow(ratio, 10);
-      } else {
-        return (0.89976) * Math.pow(ratio, 7.7095) + 0.111;    
-      }
-    }
+let device = null;
 
-    function hideAllZones() {
-      document.getElementById('zoneFar').classList.remove('active-zone');
-      document.getElementById('zoneNear').classList.remove('active-zone');
-      document.getElementById('zoneImmediate').classList.remove('active-zone');
-    }
+// Check browser support
+if (!navigator.bluetooth) {
+  statusText.innerText = "Status: Web Bluetooth not supported. Use Chrome.";
+  scanButton.disabled = true;
+}
 
-    document.getElementById('scanButton').addEventListener('click', async () => {
-      const statusText = document.getElementById('statusText');
-      const distanceText = document.getElementById('distanceText');
-      rssiHistory = []; // Clear history on new connection
+scanButton.addEventListener('click', async () => {
+  try {
+    statusText.innerText = "Status: Scanning for exhibits...";
 
-      try {
-        statusText.innerText = 'Scanning...';
-
-        const device = await navigator.bluetooth.requestDevice({
-          filters: [{ name: 'Dinosaur_Zone_Node' }],
-          optionalServices: [ESP32_SERVICE_UUID]
-        });
-
-        statusText.innerText = 'Connecting...';
-        await device.gatt.connect();
-        statusText.innerText = 'Connected! Start walking.';
-        document.getElementById('scanButton').style.display = 'none';
-
-        if (!('watchAdvertisements' in device)) {
-          statusText.innerText = "Error: Browser doesn't support live tracking.";
-          return;
-        }
-
-        device.addEventListener('advertisementreceived', (event) => {
-          let rawRssi = event.rssi;
-          
-          // --- NEW: Apply the Smoothing Math ---
-          rssiHistory.push(rawRssi);
-          if (rssiHistory.length > MAX_HISTORY) {
-            rssiHistory.shift(); // Remove the oldest reading
-          }
-          
-          // Calculate the average of the array
-          let sum = rssiHistory.reduce((a, b) => a + b, 0);
-          let avgRssi = sum / rssiHistory.length;
-          
-          let distance = calculateDistance(avgRssi);
-          // -------------------------------------
-
-          if(distance > 0) {
-            distanceText.innerText = `Distance: ~${distance.toFixed(1)} meters`;
-            hideAllZones(); 
-
-            if (distance > 5.0) {
-              document.getElementById('zoneFar').classList.add('active-zone');
-              document.body.style.backgroundColor = "#f8d7da"; 
-            } else if (distance >= 2.0 && distance <= 5.0) {
-              document.getElementById('zoneNear').classList.add('active-zone');
-              document.body.style.backgroundColor = "#fff3cd"; 
-            } else if (distance < 2.0) {
-              document.getElementById('zoneImmediate').classList.add('active-zone');
-              document.body.style.backgroundColor = "#d4edda"; 
-            }
-          }
-        });
-
-        await device.watchAdvertisements();
-
-        device.addEventListener('gattserverdisconnected', () => {
-          statusText.innerText = 'Disconnected.';
-          distanceText.innerText = 'Distance: -- meters';
-          hideAllZones();
-          document.body.style.backgroundColor = "white";
-          document.getElementById('scanButton').style.display = 'inline-block';
-        });
-
-      } catch (error) {
-        console.error(error);
-        statusText.innerText = 'Connection failed. Try again.';
-      }
+    // Use acceptAllDevices for debugging reliability
+    device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: [ESP32_SERVICE_UUID]
     });
-  </script>
+
+    statusText.innerText = "Status: Connecting to " + device.name + "...";
+
+    const server = await device.gatt.connect();
+
+    // Connected successfully
+    statusText.innerText = "Status: Connected to " + device.name;
+    document.body.style.backgroundColor = "#d4edda";
+    exhibitContent.classList.remove('hidden');
+    scanButton.classList.add('hidden');
+
+    // Handle disconnect when user walks away
+    device.addEventListener('gattserverdisconnected', onDisconnected);
+
+  } catch (error) {
+    console.error(error);
+
+    if (error.name === "NotFoundError") {
+      statusText.innerText = "Status: No device selected.";
+    } else {
+      statusText.innerText = "Status: Connection failed.";
+    }
+  }
+});
+
+function onDisconnected() {
+  statusText.innerText = "Status: Disconnected. Move closer and reconnect.";
+  document.body.style.backgroundColor = "white";
+  exhibitContent.classList.add('hidden');
+  scanButton.classList.remove('hidden');
+}
+</script>
+
+</body>
+</html>
