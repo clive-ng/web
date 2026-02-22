@@ -3,100 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beacon Distance Radar</title>
+    <title>Dinosaur Zone Explorer</title>
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; text-align: center; background: #222; color: white; padding: 20px; }
-        .radar {
-            width: 250px; height: 250px;
-            border: 5px solid #555; border-radius: 50%;
-            margin: 40px auto; position: relative;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            transition: border-color 0.3s, box-shadow 0.3s;
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            padding: 50px; 
+            background-color: #f4f4f9;
+            color: #333;
         }
-        .radar.near { border-color: #4CAF50; box-shadow: 0 0 30px #4CAF50; }
-        .radar.medium { border-color: #FFC107; box-shadow: 0 0 30px #FFC107; }
-        .radar.far { border-color: #F44336; box-shadow: 0 0 30px #F44336; }
         
-        h1 { margin-bottom: 5px; }
-        #distance { font-size: 3em; font-weight: bold; }
-        #rssi { color: #aaa; margin-top: 10px; }
-        button {
-            background: #007bff; color: white; border: none; padding: 15px 30px;
-            font-size: 1.2em; border-radius: 50px; cursor: pointer; margin-top: 20px;
+        #scanBtn { 
+            padding: 15px 30px; 
+            font-size: 18px; 
+            cursor: pointer; 
+            background-color: #2c3e50; 
+            color: white; 
+            border: none; 
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background 0.3s;
         }
-        button:active { transform: scale(0.98); }
+        
+        #scanBtn:hover { background-color: #1a252f; }
+        
+        .distance-display { font-size: 20px; margin: 20px 0; font-weight: bold; }
+
+        .option { 
+            display: none; 
+            padding: 40px 20px; 
+            border-radius: 12px; 
+            margin-top: 30px; 
+            font-size: 28px; 
+            color: white; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            transition: opacity 0.5s ease-in-out;
+        }
+        
+        .active { display: block; animation: fadeIn 0.5s; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        #state1 { background: #7f8c8d; } 
+        #state2 { background: #3498db; } 
+        #state3 { background: #2ecc71; } 
+        #state4 { background: #e67e22; } 
+        #state5 { background: #e74c3c; } 
     </style>
 </head>
 <body>
 
-    <h1>Beacon Radar</h1>
-    <p>Find "ESP32-iBeacon"</p>
+    <h1>Dinosaur Zone Explorer</h1>
+    <button id="scanBtn">Scan for Dinosaurs</button>
+    <div class="distance-display">Estimated Distance: <span id="distanceLabel">--</span> meters</div>
 
-    <div id="radar" class="radar">
-        <div>
-            <div id="distance">---</div>
-            <div>meters</div>
-        </div>
-    </div>
-
-    <div id="rssi">Signal: Waiting...</div>
-
-    <button onclick="startScanning()">📡 Start Scan</button>
+    <div id="state1" class="option active">1. No dinosaurs nearby... Keep exploring.</div>
+    <div id="state2" class="option">2. Entering the Jurassic zone! Look around.</div>
+    <div id="state3" class="option">3. Do you hear footsteps? You are getting warmer...</div>
+    <div id="state4" class="option">4. Look at the giant T-Rex fossils right in front of you!</div>
+    <div id="state5" class="option">5. Tap here to trigger the AR Dinosaur roar!</div>
 
     <script>
-        async function startScanning() {
+        const scanBtn = document.getElementById('scanBtn');
+        const distanceLabel = document.getElementById('distanceLabel');
+        const states = [
+            document.getElementById('state1'),
+            document.getElementById('state2'),
+            document.getElementById('state3'),
+            document.getElementById('state4'),
+            document.getElementById('state5')
+        ];
+
+        // System variables for smoothing and self-healing
+        let activeDevice = null;
+        let watchController = new AbortController();
+        let lastSignalTime = Date.now();
+        let smoothedRssi = null;
+        const alpha = 0.15; // Smoothing factor
+
+        scanBtn.addEventListener('click', async () => {
             try {
-                // 1. Request the device (Browser needs user permission)
-                const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ name: "ESP32-iBeacon" }]
+                scanBtn.innerText = "Checking Browser Popup...";
+                
+                activeDevice = await navigator.bluetooth.requestDevice({
+                    filters: [{ namePrefix: 'Dinosaur' }], 
+                    optionalServices: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b']
                 });
 
-                document.getElementById('rssi').innerText = "Connecting watcher...";
+                scanBtn.innerText = `Connected to: ${activeDevice.name}`;
 
-                // 2. Setup the listener for signal updates
-                device.addEventListener('advertisementreceived', (event) => {
-                    const rssi = event.rssi;
-                    updateDashboard(rssi);
+                // When data is received, do the math and reset the Watchdog timer
+                activeDevice.addEventListener('advertisementreceived', (event) => {
+                    lastSignalTime = Date.now(); // Tell the watchdog we are still alive!
+                    
+                    let currentRssi = event.rssi;
+                    if (smoothedRssi === null) {
+                        smoothedRssi = currentRssi;
+                    } else {
+                        smoothedRssi = (alpha * currentRssi) + ((1 - alpha) * smoothedRssi);
+                    }
+                    
+                    let txPower = -59; 
+                    let ratio = (txPower - smoothedRssi) / (10 * 2.0);
+                    let distance = Math.pow(10, ratio).toFixed(2);
+                    
+                    distanceLabel.innerText = distance;
+                    updateUI(distance);
                 });
 
-                // 3. Start watching for advertisements (Passive scanning)
-                // Note: This API is supported in Chrome/Edge (Desktop & Android)
-                await device.watchAdvertisements();
-                document.getElementById('rssi').innerText = "Signal: Scanning...";
+                // Start the scanner
+                startScanning();
 
             } catch (error) {
-                console.log("Error:", error);
-                alert("Error: " + error);
+                console.error('Bluetooth Error: ', error);
+                scanBtn.innerText = "Scan for Dinosaurs";
+            }
+        });
+
+        // Function to start (or safely restart) the scanner
+        async function startScanning() {
+            if (!activeDevice) return;
+            try {
+                // Kill any frozen scan processes before starting a fresh one
+                watchController.abort(); 
+                watchController = new AbortController();
+                await activeDevice.watchAdvertisements({ signal: watchController.signal });
+                console.log("Scanner is running...");
+            } catch (e) {
+                console.log("Scanner restart note: ", e.message);
             }
         }
 
-        function updateDashboard(rssi) {
-            // Update RSSI Text
-            document.getElementById('rssi').innerText = `Signal: ${rssi} dBm`;
+        // --- DEFENSE 1: THE WATCHDOG TIMER ---
+        // Every 3 seconds, check if the signal has frozen. If it's been silent for > 5 seconds, reboot it.
+        setInterval(() => {
+            if (activeDevice && (Date.now() - lastSignalTime > 5000)) {
+                console.log("Browser froze the signal! Rebooting scanner...");
+                startScanning();
+                lastSignalTime = Date.now(); // Reset timer to give it time to wake up
+            }
+        }, 3000);
 
-            // Calculate Distance
-            // Formula: d = 10 ^ ((TxPower - RSSI) / (10 * N))
-            const txPower = -59; // Hardcoded (Calibrated at 1m)
-            const n = 2.0;       // Path loss exponent (Environmental factor)
-            
-            const exponent = (txPower - rssi) / (10 * n);
-            const distance = Math.pow(10, exponent);
+        // --- DEFENSE 2: TAB VISIBILITY TRACKER ---
+        // If the user minimizes Chrome and comes back, instantly wake up the scanner.
+        document.addEventListener("visibilitychange", () => {
+            if (!document.hidden && activeDevice) {
+                console.log("Welcome back! Waking up scanner...");
+                startScanning();
+            }
+        });
 
-            // Update Screen
-            const distElement = document.getElementById('distance');
-            const radarElement = document.getElementById('radar');
+        // Map distance to UI options
+        function updateUI(dist) {
+            states.forEach(state => state.classList.remove('active'));
 
-            distElement.innerText = distance.toFixed(1);
-
-            // Change Colors
-            radarElement.className = 'radar'; // Reset
-            if (distance < 1.0) {
-                radarElement.classList.add('near');
-            } else if (distance < 3.0) {
-                radarElement.classList.add('medium');
+            if (dist > 5.0) {
+                states[0].classList.add('active');
+            } else if (dist > 3.0) {
+                states[1].classList.add('active');
+            } else if (dist > 1.5) {
+                states[2].classList.add('active');
+            } else if (dist > 0.5) {
+                states[3].classList.add('active');
             } else {
-                radarElement.classList.add('far');
+                states[4].classList.add('active');
             }
         }
     </script>
