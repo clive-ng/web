@@ -3,72 +3,144 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Museum Wayfinding</title>
+  <title>3-Zone Wayfinding</title>
   <style>
     body { font-family: sans-serif; text-align: center; padding: 20px; transition: background-color 0.5s; }
-    button { padding: 15px 30px; font-size: 18px; background-color: #007BFF; color: white; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 20px; }
-    .data-box { margin-top: 30px; padding: 20px; background-color: #f4f4f4; border-radius: 8px; }
+    button { padding: 15px 30px; font-size: 18px; background-color: #000; color: white; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 20px; }
+    .data-box { margin-top: 20px; padding: 15px; background-color: rgba(255,255,255,0.8); border-radius: 8px; display: inline-block;}
     h1 { font-size: 24px; }
-    .hidden { display: none; }
-    #exhibitContent { margin-top: 20px; padding: 20px; background-color: white; border-radius: 8px; border: 2px solid #28a745; }
+    
+    /* CSS for the 3 different zones */
+    .zone-box { display: none; margin-top: 30px; padding: 30px; border-radius: 12px; border: 3px solid #333; font-size: 20px; }
+    
+    #zoneFar { background-color: #f8d7da; /* Light Red */ }
+    #zoneNear { background-color: #fff3cd; /* Light Yellow */ }
+    #zoneImmediate { background-color: #d4edda; /* Light Green */ }
+    
+    /* When a zone is active, show it */
+    .active-zone { display: block !important; }
   </style>
 </head>
 <body>
 
-  <h1>Museum Navigator</h1>
-  <p>Click below to connect to the nearest exhibit.</p>
+  <h1>Dinosaur Exhibit Tracker</h1>
+  <p>Click below, then start walking towards the exhibit.</p>
   
-  <button id="scanButton">Scan & Connect</button>
+  <button id="scanButton">Start Tracking</button>
 
   <div class="data-box">
-    <h3 id="statusText">Status: Waiting...</h3>
+    <h4 id="statusText">Status: Waiting...</h4>
+    <h3 id="distanceText">Distance: -- meters</h3>
   </div>
 
-  <div id="exhibitContent" class="hidden">
-    <h2>🦖 You have arrived at the Dinosaurs!</h2>
-    <p>Turn left to see the T-Rex skeleton, or go straight for the Triceratops.</p>
+  <div id="zoneFar" class="zone-box">
+    <h2>🚶 Zone 3: Far</h2>
+    <p>You are far away from the Dinosaurs. Keep walking down the hallway!</p>
+  </div>
+
+  <div id="zoneNear" class="zone-box">
+    <h2>👀 Zone 2: Near</h2>
+    <p>You have entered the Dinosaur Room! Walk towards the center display.</p>
+  </div>
+
+  <div id="zoneImmediate" class="zone-box">
+    <h2>🦖 Zone 1: Immediate</h2>
+    <p>You are standing right in front of the T-Rex! Look up to see the jawbone.</p>
   </div>
 
   <script>
-    // This MUST match the SERVICE_UUID in your ESP32 Arduino code!
     const ESP32_SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+
+    // Math formula to estimate distance from RSSI
+    function calculateDistance(rssi) {
+      const txPower = -59; 
+      if (rssi === 0) return -1.0; 
+      const ratio = rssi * 1.0 / txPower;
+      if (ratio < 1.0) {
+        return Math.pow(ratio, 10);
+      } else {
+        return (0.89976) * Math.pow(ratio, 7.7095) + 0.111;    
+      }
+    }
+
+    // Function to hide all zones
+    function hideAllZones() {
+      document.getElementById('zoneFar').classList.remove('active-zone');
+      document.getElementById('zoneNear').classList.remove('active-zone');
+      document.getElementById('zoneImmediate').classList.remove('active-zone');
+    }
 
     document.getElementById('scanButton').addEventListener('click', async () => {
       const statusText = document.getElementById('statusText');
-      const exhibitContent = document.getElementById('exhibitContent');
+      const distanceText = document.getElementById('distanceText');
 
       try {
-        statusText.innerText = 'Status: Scanning for nearby exhibits...';
+        statusText.innerText = 'Scanning...';
 
-        // 1. Request the device AND declare the service we want to use
-        // The optionalServices array is CRITICAL to stop the 3-second timeout!
+        // 1. Request the Bluetooth device
         const device = await navigator.bluetooth.requestDevice({
           filters: [{ name: 'Dinosaur_Zone_Node' }],
-          optionalServices: [ESP32_SERVICE_UUID] 
+          optionalServices: [ESP32_SERVICE_UUID]
         });
 
-        statusText.innerText = 'Status: Device found, connecting...';
+        statusText.innerText = 'Connecting...';
 
-        // 2. Connect to the GATT server to keep the connection alive indefinitely
-        const server = await device.gatt.connect();
-        
-        // 3. SUCCESS! Change the UI because we are in range
-        statusText.innerText = 'Status: Connected to ' + device.name;
-        document.body.style.backgroundColor = "#d4edda"; // Turn background light green
-        exhibitContent.classList.remove('hidden');       // Show the secret museum content
-        document.getElementById('scanButton').classList.add('hidden'); // Hide the scan button
+        // 2. Connect to GATT to keep connection alive
+        await device.gatt.connect();
+        statusText.innerText = 'Connected! Start walking.';
+        document.getElementById('scanButton').style.display = 'none';
 
-        // 4. Handle what happens when the user walks away (disconnects)
+        // 3. Safety check for iOS/unsupported browsers
+        if (!('watchAdvertisements' in device)) {
+          statusText.innerText = "Error: Browser doesn't support live tracking.";
+          return;
+        }
+
+        // 4. Listen for continuous signal updates
+        device.addEventListener('advertisementreceived', (event) => {
+          let rssi = event.rssi;
+          let distance = calculateDistance(rssi);
+          
+          // Only update if distance is valid
+          if(distance > 0) {
+            distanceText.innerText = `Distance: ~${distance.toFixed(1)} meters`;
+            
+            hideAllZones(); // Clear the screen first
+
+            // 5. THE 3-ZONE LOGIC
+            if (distance > 5.0) {
+              // Zone 3: Greater than 5 meters
+              document.getElementById('zoneFar').classList.add('active-zone');
+              document.body.style.backgroundColor = "#f8d7da"; // Red background
+
+            } else if (distance >= 2.0 && distance <= 5.0) {
+              // Zone 2: Between 2 and 5 meters
+              document.getElementById('zoneNear').classList.add('active-zone');
+              document.body.style.backgroundColor = "#fff3cd"; // Yellow background
+
+            } else if (distance < 2.0) {
+              // Zone 1: Less than 2 meters
+              document.getElementById('zoneImmediate').classList.add('active-zone');
+              document.body.style.backgroundColor = "#d4edda"; // Green background
+            }
+          }
+        });
+
+        // 6. Start watching the live signals
+        await device.watchAdvertisements();
+
+        // Handle Disconnects
         device.addEventListener('gattserverdisconnected', () => {
-          statusText.innerText = 'Status: You walked away. Disconnected.';
+          statusText.innerText = 'Disconnected.';
+          distanceText.innerText = 'Distance: -- meters';
+          hideAllZones();
           document.body.style.backgroundColor = "white";
-          exhibitContent.classList.add('hidden');
-          document.getElementById('scanButton').classList.remove('hidden');
+          document.getElementById('scanButton').style.display = 'inline-block';
         });
 
       } catch (error) {
         console.error(error);
-        statusText.innerText = 'Status: Connection failed or cancelled.';
+        statusText.innerText = 'Connection failed.';
       }
     });
   </script>
