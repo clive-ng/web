@@ -5,30 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Museum Wayfinding</title>
   <style>
-    /* Simple CSS to make it look like a mobile app */
     body { font-family: sans-serif; text-align: center; padding: 20px; }
-    button { padding: 15px 30px; font-size: 18px; background-color: #007BFF; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    button { padding: 15px 30px; font-size: 18px; background-color: #007BFF; color: white; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 20px; }
     .data-box { margin-top: 30px; padding: 20px; background-color: #f4f4f4; border-radius: 8px; }
     h1 { font-size: 24px; }
+    .warning { color: red; font-size: 14px; font-weight: bold; }
   </style>
 </head>
 <body>
 
   <h1>Dinosaur Exhibit Navigator</h1>
-  <p>Click the button below to find nearby exhibits.</p>
+  <p>Click the button below to connect to the exhibit.</p>
   
-  <button id="scanButton">Scan for Exhibit</button>
+  <button id="scanButton">Scan & Connect</button>
 
   <div class="data-box">
     <h3 id="statusText">Status: Waiting...</h3>
     <h2 id="distanceText">Distance: -- meters</h2>
     <p id="rssiText">Signal Strength (RSSI): --</p>
   </div>
+  <p id="errorMessage" class="warning"></p>
 
   <script>
-    // 1. The Distance Math Formula
     function calculateDistance(rssi) {
-      const txPower = -59; // Expected RSSI at 1 meter
+      const txPower = -59; 
       if (rssi === 0) return -1.0; 
       const ratio = rssi * 1.0 / txPower;
       if (ratio < 1.0) {
@@ -38,30 +38,48 @@
       }
     }
 
-    // 2. The Bluetooth Scanning Logic
     document.getElementById('scanButton').addEventListener('click', async () => {
-      try {
-        document.getElementById('statusText').innerText = 'Status: Scanning...';
+      const statusText = document.getElementById('statusText');
+      const errorText = document.getElementById('errorMessage');
+      errorText.innerText = ""; // Clear old errors
 
-        // Request the specific ESP32 Bluetooth device
+      try {
+        statusText.innerText = 'Status: Scanning...';
+
+        // 1. Request the device
         const device = await navigator.bluetooth.requestDevice({
-          filters: [{ name: 'Dinosaur_Zone_Node' }] // Must match the ESP32 Arduino code!
+          filters: [{ name: 'Dinosaur_Zone_Node' }]
         });
 
-        document.getElementById('statusText').innerText = 'Status: Connected to ' + device.name;
+        statusText.innerText = 'Status: Device found, connecting...';
 
-        // 3. Listen for the Bluetooth signal strength (advertisements)
+        // 2. CRITICAL FIX: Connect to the GATT server!
+        // This tells the OS "Keep this connection alive, do not go to sleep."
+        await device.gatt.connect();
+        statusText.innerText = 'Status: Connected to ' + device.name;
+
+        // Handle accidental disconnects (e.g., walking too far away)
+        device.addEventListener('gattserverdisconnected', () => {
+          statusText.innerText = 'Status: Disconnected. Please scan again.';
+          document.body.style.backgroundColor = "white";
+        });
+
+        // 3. Check for watchAdvertisements compatibility (Crucial for iOS/Bluefy)
+        if (!('watchAdvertisements' in device)) {
+          errorText.innerText = "Error: Your browser does not support continuous distance tracking (watchAdvertisements API).";
+          return; // Stop the script here so it doesn't crash
+        }
+
+        // 4. Listen for signal strength updates
         device.addEventListener('advertisementreceived', (event) => {
           let currentRssi = event.rssi;
-          let estimatedDistance = calculateDistance(currentRssi).toFixed(2); // Round to 2 decimal places
+          let estimatedDistance = calculateDistance(currentRssi).toFixed(2);
 
-          // Update the HTML interface with the new numbers
           document.getElementById('rssiText').innerText = `Signal Strength (RSSI): ${currentRssi} dBm`;
           document.getElementById('distanceText').innerText = `Distance: ~${estimatedDistance} meters`;
           
-          // Example of triggering an action based on distance!
-          if(estimatedDistance < 2.0) {
-            document.body.style.backgroundColor = "#d4edda"; // Turn background green if very close
+          if(estimatedDistance < 2.0 && estimatedDistance > 0) {
+            document.body.style.backgroundColor = "#d4edda"; 
           } else {
             document.body.style.backgroundColor = "white";
           }
@@ -72,7 +90,8 @@
 
       } catch (error) {
         console.error(error);
-        document.getElementById('statusText').innerText = 'Error: Could not connect.';
+        statusText.innerText = 'Status: Error occurred.';
+        errorText.innerText = error.message;
       }
     });
   </script>
