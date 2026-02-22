@@ -5,93 +5,70 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Museum Wayfinding</title>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 20px; }
+    body { font-family: sans-serif; text-align: center; padding: 20px; transition: background-color 0.5s; }
     button { padding: 15px 30px; font-size: 18px; background-color: #007BFF; color: white; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 20px; }
     .data-box { margin-top: 30px; padding: 20px; background-color: #f4f4f4; border-radius: 8px; }
     h1 { font-size: 24px; }
-    .warning { color: red; font-size: 14px; font-weight: bold; }
+    .hidden { display: none; }
+    #exhibitContent { margin-top: 20px; padding: 20px; background-color: white; border-radius: 8px; border: 2px solid #28a745; }
   </style>
 </head>
 <body>
 
-  <h1>Dinosaur Exhibit Navigator</h1>
-  <p>Click the button below to connect to the exhibit.</p>
+  <h1>Museum Navigator</h1>
+  <p>Click below to connect to the nearest exhibit.</p>
   
   <button id="scanButton">Scan & Connect</button>
 
   <div class="data-box">
     <h3 id="statusText">Status: Waiting...</h3>
-    <h2 id="distanceText">Distance: -- meters</h2>
-    <p id="rssiText">Signal Strength (RSSI): --</p>
   </div>
-  <p id="errorMessage" class="warning"></p>
+
+  <div id="exhibitContent" class="hidden">
+    <h2>🦖 You have arrived at the Dinosaurs!</h2>
+    <p>Turn left to see the T-Rex skeleton, or go straight for the Triceratops.</p>
+  </div>
 
   <script>
-    function calculateDistance(rssi) {
-      const txPower = -59; 
-      if (rssi === 0) return -1.0; 
-      const ratio = rssi * 1.0 / txPower;
-      if (ratio < 1.0) {
-        return Math.pow(ratio, 10);
-      } else {
-        return (0.89976) * Math.pow(ratio, 7.7095) + 0.111;    
-      }
-    }
+    // This MUST match the SERVICE_UUID in your ESP32 Arduino code!
+    const ESP32_SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
 
     document.getElementById('scanButton').addEventListener('click', async () => {
       const statusText = document.getElementById('statusText');
-      const errorText = document.getElementById('errorMessage');
-      errorText.innerText = ""; // Clear old errors
+      const exhibitContent = document.getElementById('exhibitContent');
 
       try {
-        statusText.innerText = 'Status: Scanning...';
+        statusText.innerText = 'Status: Scanning for nearby exhibits...';
 
-        // 1. Request the device
+        // 1. Request the device AND declare the service we want to use
+        // The optionalServices array is CRITICAL to stop the 3-second timeout!
         const device = await navigator.bluetooth.requestDevice({
-          filters: [{ name: 'Dinosaur_Zone_Node' }]
+          filters: [{ name: 'Dinosaur_Zone_Node' }],
+          optionalServices: [ESP32_SERVICE_UUID] 
         });
 
         statusText.innerText = 'Status: Device found, connecting...';
 
-        // 2. CRITICAL FIX: Connect to the GATT server!
-        // This tells the OS "Keep this connection alive, do not go to sleep."
-        await device.gatt.connect();
+        // 2. Connect to the GATT server to keep the connection alive indefinitely
+        const server = await device.gatt.connect();
+        
+        // 3. SUCCESS! Change the UI because we are in range
         statusText.innerText = 'Status: Connected to ' + device.name;
+        document.body.style.backgroundColor = "#d4edda"; // Turn background light green
+        exhibitContent.classList.remove('hidden');       // Show the secret museum content
+        document.getElementById('scanButton').classList.add('hidden'); // Hide the scan button
 
-        // Handle accidental disconnects (e.g., walking too far away)
+        // 4. Handle what happens when the user walks away (disconnects)
         device.addEventListener('gattserverdisconnected', () => {
-          statusText.innerText = 'Status: Disconnected. Please scan again.';
+          statusText.innerText = 'Status: You walked away. Disconnected.';
           document.body.style.backgroundColor = "white";
+          exhibitContent.classList.add('hidden');
+          document.getElementById('scanButton').classList.remove('hidden');
         });
-
-        // 3. Check for watchAdvertisements compatibility (Crucial for iOS/Bluefy)
-        if (!('watchAdvertisements' in device)) {
-          errorText.innerText = "Error: Your browser does not support continuous distance tracking (watchAdvertisements API).";
-          return; // Stop the script here so it doesn't crash
-        }
-
-        // 4. Listen for signal strength updates
-        device.addEventListener('advertisementreceived', (event) => {
-          let currentRssi = event.rssi;
-          let estimatedDistance = calculateDistance(currentRssi).toFixed(2);
-
-          document.getElementById('rssiText').innerText = `Signal Strength (RSSI): ${currentRssi} dBm`;
-          document.getElementById('distanceText').innerText = `Distance: ~${estimatedDistance} meters`;
-          
-          if(estimatedDistance < 2.0 && estimatedDistance > 0) {
-            document.body.style.backgroundColor = "#d4edda"; 
-          } else {
-            document.body.style.backgroundColor = "white";
-          }
-        });
-
-        // Start watching the signals
-        await device.watchAdvertisements();
 
       } catch (error) {
         console.error(error);
-        statusText.innerText = 'Status: Error occurred.';
-        errorText.innerText = error.message;
+        statusText.innerText = 'Status: Connection failed or cancelled.';
       }
     });
   </script>
