@@ -78,7 +78,7 @@
         let watchController = new AbortController();
         let lastSignalTime = Date.now();
         let smoothedRssi = null;
-        const alpha = 0.15; 
+        const alpha = 0.7; 
 
         scanBtn.addEventListener('click', async () => {
             try {
