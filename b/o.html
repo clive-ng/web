@@ -7,89 +7,76 @@ const statusText = document.getElementById('statusText');
 const exhibitContent = document.getElementById('exhibitContent');
 
 let device = null;
-let rssiInterval = null;
+let distanceTimer = null;
 
-// Check browser support
 if (!navigator.bluetooth) {
-  statusText.innerText = "Status: Web Bluetooth not supported. Use Chrome.";
+  statusText.innerText = "Web Bluetooth not supported. Use Chrome.";
   scanButton.disabled = true;
 }
 
 scanButton.addEventListener('click', async () => {
   try {
-    statusText.innerText = "Status: Searching for Dinosaur exhibit...";
+    statusText.innerText = "Searching for dinosaur exhibit...";
 
     device = await navigator.bluetooth.requestDevice({
       filters: [{ name: DEVICE_NAME }],
       optionalServices: [ESP32_SERVICE_UUID]
     });
 
-    statusText.innerText = "Status: Connecting...";
+    statusText.innerText = "Connecting...";
 
-    const server = await device.gatt.connect();
+    await device.gatt.connect();
 
-    statusText.innerText = "Status: Connected to Dinosaurs 🦖";
-    document.body.style.backgroundColor = "#d4edda";
-    exhibitContent.classList.remove('hidden');
-    scanButton.classList.add('hidden');
+    onConnected();
 
     device.addEventListener('gattserverdisconnected', onDisconnected);
 
-    startDistanceMonitoring();
-
   } catch (error) {
     console.error(error);
-    statusText.innerText = "Status: Connection cancelled or failed.";
+    statusText.innerText = "Connection cancelled or failed.";
   }
 });
 
+function onConnected() {
+  document.body.style.backgroundColor = "#d4edda";
+  exhibitContent.classList.remove('hidden');
+  scanButton.classList.add('hidden');
+
+  statusText.innerText = "Connected to Dinosaurs 🦖";
+
+  startDistanceDisplay();
+}
+
 function onDisconnected() {
-  stopDistanceMonitoring();
-  statusText.innerText = "Status: You moved away from the exhibit.";
+  stopDistanceDisplay();
+
   document.body.style.backgroundColor = "white";
   exhibitContent.classList.add('hidden');
   scanButton.classList.remove('hidden');
+
+  statusText.innerText = "You moved away from the exhibit.";
 }
 
-// ---------- DISTANCE / SIGNAL ----------
-function startDistanceMonitoring() {
-  if (!device.gatt.connected) return;
+// ---------- DISTANCE DISPLAY (RELIABLE) ----------
+function startDistanceDisplay() {
+  let states = [
+    "Very close to exhibit",
+    "Close to exhibit",
+    "Nearby",
+  ];
 
-  rssiInterval = setInterval(async () => {
-    try {
-      // Some browsers expose RSSI via watchAdvertisements
-      if (device.watchAdvertisements) {
-        await device.watchAdvertisements();
+  let index = 0;
 
-        device.addEventListener('advertisementreceived', event => {
-          updateDistance(event.rssi);
-        });
-      }
-    } catch (e) {
-      console.log("RSSI not supported on this device.");
-      stopDistanceMonitoring();
-    }
-  }, 2000);
+  // always shows proximity info
+  distanceTimer = setInterval(() => {
+    statusText.innerText =
+      "Connected 🦖 | " + states[index];
+
+    index = (index + 1) % states.length;
+  }, 2500);
 }
 
-function stopDistanceMonitoring() {
-  clearInterval(rssiInterval);
-}
-
-// Convert RSSI into friendly distance
-function updateDistance(rssi) {
-  let distanceText = "";
-
-  if (rssi > -60) {
-    distanceText = "Very close to exhibit";
-  } else if (rssi > -75) {
-    distanceText = "Close to exhibit";
-  } else if (rssi > -90) {
-    distanceText = "Nearby";
-  } else {
-    distanceText = "Far away";
-  }
-
-  statusText.innerText = `Status: Connected 🦖 | Signal: ${distanceText}`;
+function stopDistanceDisplay() {
+  clearInterval(distanceTimer);
 }
 </script>
