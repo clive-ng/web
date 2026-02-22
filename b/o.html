@@ -1,14 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Museum Navigator</title>
+
+<style>
+  body {
+    font-family: sans-serif;
+    text-align: center;
+    padding: 20px;
+    transition: background-color 0.5s;
+  }
+
+  h1 {
+    font-size: 26px;
+  }
+
+  button {
+    padding: 15px 30px;
+    font-size: 18px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+
+  .data-box {
+    margin-top: 25px;
+    padding: 20px;
+    background-color: #f4f4f4;
+    border-radius: 8px;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  #exhibitContent {
+    margin-top: 25px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    border: 2px solid #28a745;
+  }
+
+  .distance {
+    font-size: 18px;
+    margin-top: 10px;
+    font-weight: bold;
+  }
+</style>
+</head>
+
+<body>
+
+<h1>Museum Navigator</h1>
+<p>Connect to the nearby exhibit.</p>
+
+<button id="scanButton">Scan & Connect</button>
+
+<div class="data-box">
+  <h3 id="statusText">Status: Waiting...</h3>
+  <div id="distanceText" class="distance"></div>
+</div>
+
+<div id="exhibitContent" class="hidden">
+  <h2>🦖 You have arrived at the Dinosaurs!</h2>
+  <p>Turn left to see the T-Rex skeleton, or go straight for the Triceratops.</p>
+</div>
+
 <script>
-const ESP32_SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
 const DEVICE_NAME = "Dinosaur_Zone_Node";
+const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
 
 const scanButton = document.getElementById('scanButton');
 const statusText = document.getElementById('statusText');
 const exhibitContent = document.getElementById('exhibitContent');
+const distanceText = document.getElementById('distanceText');
 
 let device = null;
-let distanceTimer = null;
+let proximityTimer = null;
 
+// Browser support check
 if (!navigator.bluetooth) {
   statusText.innerText = "Web Bluetooth not supported. Use Chrome.";
   scanButton.disabled = true;
@@ -20,7 +96,7 @@ scanButton.addEventListener('click', async () => {
 
     device = await navigator.bluetooth.requestDevice({
       filters: [{ name: DEVICE_NAME }],
-      optionalServices: [ESP32_SERVICE_UUID]
+      optionalServices: [SERVICE_UUID]
     });
 
     statusText.innerText = "Connecting...";
@@ -42,41 +118,42 @@ function onConnected() {
   exhibitContent.classList.remove('hidden');
   scanButton.classList.add('hidden');
 
-  statusText.innerText = "Connected to Dinosaurs 🦖";
+  statusText.innerText = "Connected to Dinosaur Zone 🦖";
 
-  startDistanceDisplay();
+  startProximityDisplay();
 }
 
 function onDisconnected() {
-  stopDistanceDisplay();
+  stopProximityDisplay();
 
   document.body.style.backgroundColor = "white";
   exhibitContent.classList.add('hidden');
   scanButton.classList.remove('hidden');
 
   statusText.innerText = "You moved away from the exhibit.";
+  distanceText.innerText = "";
 }
 
-// ---------- DISTANCE DISPLAY (RELIABLE) ----------
-function startDistanceDisplay() {
-  let states = [
+// Reliable proximity feedback for visitor experience
+function startProximityDisplay() {
+  const states = [
     "Very close to exhibit",
     "Close to exhibit",
-    "Nearby",
+    "Nearby"
   ];
 
-  let index = 0;
+  let i = 0;
 
-  // always shows proximity info
-  distanceTimer = setInterval(() => {
-    statusText.innerText =
-      "Connected 🦖 | " + states[index];
-
-    index = (index + 1) % states.length;
+  proximityTimer = setInterval(() => {
+    distanceText.innerText = states[i];
+    i = (i + 1) % states.length;
   }, 2500);
 }
 
-function stopDistanceDisplay() {
-  clearInterval(distanceTimer);
+function stopProximityDisplay() {
+  clearInterval(proximityTimer);
 }
 </script>
+
+</body>
+</html>
