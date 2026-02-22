@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dinosaur Zone Explorer</title>
+    <title>Museum Explorer (Debug Mode)</title>
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -25,7 +25,7 @@
             transition: background 0.3s;
         }
         
-        #scanBtn:hover { background-color: #1a252f; }
+        #scanBtn:hover { background-color: #e74c3c; } /* Red in debug mode */
         
         .distance-display { font-size: 20px; margin: 20px 0; font-weight: bold; }
 
@@ -53,15 +53,15 @@
 </head>
 <body>
 
-    <h1>Dinosaur Zone Explorer</h1>
-    <button id="scanBtn">Scan for Dinosaurs</button>
+    <h1>Museum Explorer (Debug Mode)</h1>
+    <button id="scanBtn">Scan for ALL Devices</button>
     <div class="distance-display">Estimated Distance: <span id="distanceLabel">--</span> meters</div>
 
-    <div id="state1" class="option active">1. No dinosaurs nearby... Keep exploring.</div>
-    <div id="state2" class="option">2. Entering the Jurassic zone! Look around.</div>
-    <div id="state3" class="option">3. Do you hear footsteps? You are getting warmer...</div>
-    <div id="state4" class="option">4. Look at the giant T-Rex fossils right in front of you!</div>
-    <div id="state5" class="option">5. Tap here to trigger the AR Dinosaur roar!</div>
+    <div id="state1" class="option active">1. No devices nearby...</div>
+    <div id="state2" class="option">2. Signal detected!</div>
+    <div id="state3" class="option">3. Getting closer...</div>
+    <div id="state4" class="option">4. Very close!</div>
+    <div id="state5" class="option">5. Right next to the device!</div>
 
     <script>
         const scanBtn = document.getElementById('scanBtn');
@@ -74,27 +74,26 @@
             document.getElementById('state5')
         ];
 
-        // System variables for smoothing and self-healing
         let activeDevice = null;
         let watchController = new AbortController();
         let lastSignalTime = Date.now();
         let smoothedRssi = null;
-        const alpha = 0.15; // Smoothing factor
+        const alpha = 0.15; 
 
         scanBtn.addEventListener('click', async () => {
             try {
                 scanBtn.innerText = "Checking Browser Popup...";
                 
+                // ULTIMATE DEBUG: Accept ALL devices, no name filters.
                 activeDevice = await navigator.bluetooth.requestDevice({
-                    filters: [{ namePrefix: 'Dinosaur' }], 
+                    acceptAllDevices: true, 
                     optionalServices: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b']
                 });
 
-                scanBtn.innerText = `Connected to: ${activeDevice.name}`;
+                scanBtn.innerText = `Connected to: ${activeDevice.name || "Unknown Device"}`;
 
-                // When data is received, do the math and reset the Watchdog timer
                 activeDevice.addEventListener('advertisementreceived', (event) => {
-                    lastSignalTime = Date.now(); // Tell the watchdog we are still alive!
+                    lastSignalTime = Date.now(); 
                     
                     let currentRssi = event.rssi;
                     if (smoothedRssi === null) {
@@ -111,20 +110,18 @@
                     updateUI(distance);
                 });
 
-                // Start the scanner
                 startScanning();
 
             } catch (error) {
                 console.error('Bluetooth Error: ', error);
-                scanBtn.innerText = "Scan for Dinosaurs";
+                scanBtn.innerText = "Scan for ALL Devices";
+                alert("Scan cancelled or failed. Check console for details.");
             }
         });
 
-        // Function to start (or safely restart) the scanner
         async function startScanning() {
             if (!activeDevice) return;
             try {
-                // Kill any frozen scan processes before starting a fresh one
                 watchController.abort(); 
                 watchController = new AbortController();
                 await activeDevice.watchAdvertisements({ signal: watchController.signal });
@@ -134,26 +131,21 @@
             }
         }
 
-        // --- DEFENSE 1: THE WATCHDOG TIMER ---
-        // Every 3 seconds, check if the signal has frozen. If it's been silent for > 5 seconds, reboot it.
         setInterval(() => {
             if (activeDevice && (Date.now() - lastSignalTime > 5000)) {
-                console.log("Browser froze the signal! Rebooting scanner...");
+                console.log("Signal timeout! Rebooting scanner...");
                 startScanning();
-                lastSignalTime = Date.now(); // Reset timer to give it time to wake up
+                lastSignalTime = Date.now(); 
             }
         }, 3000);
 
-        // --- DEFENSE 2: TAB VISIBILITY TRACKER ---
-        // If the user minimizes Chrome and comes back, instantly wake up the scanner.
         document.addEventListener("visibilitychange", () => {
             if (!document.hidden && activeDevice) {
-                console.log("Welcome back! Waking up scanner...");
+                console.log("Tab focused! Waking up scanner...");
                 startScanning();
             }
         });
 
-        // Map distance to UI options
         function updateUI(dist) {
             states.forEach(state => state.classList.remove('active'));
 
