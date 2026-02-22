@@ -1,57 +1,10 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3-Zone Wayfinding</title>
-  <style>
-    body { font-family: sans-serif; text-align: center; padding: 20px; transition: background-color 0.5s; }
-    button { padding: 15px 30px; font-size: 18px; background-color: #000; color: white; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 20px; }
-    .data-box { margin-top: 20px; padding: 15px; background-color: rgba(255,255,255,0.8); border-radius: 8px; display: inline-block;}
-    h1 { font-size: 24px; }
-    
-    /* CSS for the 3 different zones */
-    .zone-box { display: none; margin-top: 30px; padding: 30px; border-radius: 12px; border: 3px solid #333; font-size: 20px; }
-    
-    #zoneFar { background-color: #f8d7da; /* Light Red */ }
-    #zoneNear { background-color: #fff3cd; /* Light Yellow */ }
-    #zoneImmediate { background-color: #d4edda; /* Light Green */ }
-    
-    /* When a zone is active, show it */
-    .active-zone { display: block !important; }
-  </style>
-</head>
-<body>
-
-  <h1>Dinosaur Exhibit Tracker</h1>
-  <p>Click below, then start walking towards the exhibit.</p>
-  
-  <button id="scanButton">Start Tracking</button>
-
-  <div class="data-box">
-    <h4 id="statusText">Status: Waiting...</h4>
-    <h3 id="distanceText">Distance: -- meters</h3>
-  </div>
-
-  <div id="zoneFar" class="zone-box">
-    <h2>🚶 Zone 3: Far</h2>
-    <p>You are far away from the Dinosaurs. Keep walking down the hallway!</p>
-  </div>
-
-  <div id="zoneNear" class="zone-box">
-    <h2>👀 Zone 2: Near</h2>
-    <p>You have entered the Dinosaur Room! Walk towards the center display.</p>
-  </div>
-
-  <div id="zoneImmediate" class="zone-box">
-    <h2>🦖 Zone 1: Immediate</h2>
-    <p>You are standing right in front of the T-Rex! Look up to see the jawbone.</p>
-  </div>
-
-  <script>
+<script>
     const ESP32_SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
 
-    // Math formula to estimate distance from RSSI
+    // --- NEW: The Smoothing Filter Array ---
+    let rssiHistory = [];
+    const MAX_HISTORY = 5; // Average the last 5 pings. Increase this number for more stability (but slower reaction time).
+
     function calculateDistance(rssi) {
       const txPower = -59; 
       if (rssi === 0) return -1.0; 
@@ -63,7 +16,6 @@
       }
     }
 
-    // Function to hide all zones
     function hideAllZones() {
       document.getElementById('zoneFar').classList.remove('active-zone');
       document.getElementById('zoneNear').classList.remove('active-zone');
@@ -73,63 +25,61 @@
     document.getElementById('scanButton').addEventListener('click', async () => {
       const statusText = document.getElementById('statusText');
       const distanceText = document.getElementById('distanceText');
+      rssiHistory = []; // Clear history on new connection
 
       try {
         statusText.innerText = 'Scanning...';
 
-        // 1. Request the Bluetooth device
         const device = await navigator.bluetooth.requestDevice({
           filters: [{ name: 'Dinosaur_Zone_Node' }],
           optionalServices: [ESP32_SERVICE_UUID]
         });
 
         statusText.innerText = 'Connecting...';
-
-        // 2. Connect to GATT to keep connection alive
         await device.gatt.connect();
         statusText.innerText = 'Connected! Start walking.';
         document.getElementById('scanButton').style.display = 'none';
 
-        // 3. Safety check for iOS/unsupported browsers
         if (!('watchAdvertisements' in device)) {
           statusText.innerText = "Error: Browser doesn't support live tracking.";
           return;
         }
 
-        // 4. Listen for continuous signal updates
         device.addEventListener('advertisementreceived', (event) => {
-          let rssi = event.rssi;
-          let distance = calculateDistance(rssi);
+          let rawRssi = event.rssi;
           
-          // Only update if distance is valid
+          // --- NEW: Apply the Smoothing Math ---
+          rssiHistory.push(rawRssi);
+          if (rssiHistory.length > MAX_HISTORY) {
+            rssiHistory.shift(); // Remove the oldest reading
+          }
+          
+          // Calculate the average of the array
+          let sum = rssiHistory.reduce((a, b) => a + b, 0);
+          let avgRssi = sum / rssiHistory.length;
+          
+          let distance = calculateDistance(avgRssi);
+          // -------------------------------------
+
           if(distance > 0) {
             distanceText.innerText = `Distance: ~${distance.toFixed(1)} meters`;
-            
-            hideAllZones(); // Clear the screen first
+            hideAllZones(); 
 
-            // 5. THE 3-ZONE LOGIC
             if (distance > 5.0) {
-              // Zone 3: Greater than 5 meters
               document.getElementById('zoneFar').classList.add('active-zone');
-              document.body.style.backgroundColor = "#f8d7da"; // Red background
-
+              document.body.style.backgroundColor = "#f8d7da"; 
             } else if (distance >= 2.0 && distance <= 5.0) {
-              // Zone 2: Between 2 and 5 meters
               document.getElementById('zoneNear').classList.add('active-zone');
-              document.body.style.backgroundColor = "#fff3cd"; // Yellow background
-
+              document.body.style.backgroundColor = "#fff3cd"; 
             } else if (distance < 2.0) {
-              // Zone 1: Less than 2 meters
               document.getElementById('zoneImmediate').classList.add('active-zone');
-              document.body.style.backgroundColor = "#d4edda"; // Green background
+              document.body.style.backgroundColor = "#d4edda"; 
             }
           }
         });
 
-        // 6. Start watching the live signals
         await device.watchAdvertisements();
 
-        // Handle Disconnects
         device.addEventListener('gattserverdisconnected', () => {
           statusText.innerText = 'Disconnected.';
           distanceText.innerText = 'Distance: -- meters';
@@ -140,10 +90,7 @@
 
       } catch (error) {
         console.error(error);
-        statusText.innerText = 'Connection failed.';
+        statusText.innerText = 'Connection failed. Try again.';
       }
     });
   </script>
-
-</body>
-</html>
