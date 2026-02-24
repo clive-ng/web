@@ -92,12 +92,16 @@
   	height: 169.8px;
 }
 .connected {
-  	position: absolute;
-  	top: 72.97px;
-  	left: -1px;
-  	letter-spacing: -0.02em;
-  	display: inline-block;
-  	width: 171px;
+position: absolute;
+top: 72.97px;
+left: -1px;
+letter-spacing: -0.02em;
+display: inline-block;
+width: 171px;
+
+background: none;
+border: none;
+  
 }
 .distance {
   	height: 170px;
