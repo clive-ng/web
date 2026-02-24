@@ -148,7 +148,7 @@ border: none;
 }
 .state {
   	height: 102.3px;
-  	width: 214.3px;
+    	max-width: 100%;
   	position: relative;
 }
 .state2 {
@@ -158,7 +158,7 @@ border: none;
   	letter-spacing: -0.02em;
   	line-height: 60px;
   	display: inline-block;
-  	width: 214.3px;
+  	max-width: 100%;
   	height: 102.3px;
 }
 
