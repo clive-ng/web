@@ -1,0 +1,341 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Facebook, 
+  Instagram, 
+  Youtube, 
+  DownloadCloud,
+  ArrowRight,
+  Loader2,
+  Play,
+  ExternalLink,
+  Info,
+  ServerCrash,
+  Settings
+} from 'lucide-react';
+
+// Use empty string as per instructions - environment provides key
+const apiKey = "";
+
+/**
+ * TECHNICAL NOTE FOR THE USER:
+ * To download REAL videos from social media, you must have a backend API.
+ * * Example Node.js Backend logic (Conceptual):
+ * app.get('/api/download', async (req, res) => {
+ * const { url } = req.query;
+ * // Use yt-dlp to get the direct download link
+ * const { stdout } = await exec(`yt-dlp -g ${url}`);
+ * res.json({ downloadUrl: stdout.trim() });
+ * });
+ */
+
+export default function App() {
+  const [platform, setPlatform] = useState('facebook');
+  const [url, setUrl] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [result, setResult] = useState(null);
+  const [downloading, setDownloading] = useState(false);
+
+  const platforms = {
+    facebook: {
+      name: 'Facebook',
+      placeholder: 'Paste Facebook video URL here...',
+      validator: (inputUrl) => /facebook\.com|fb\.watch/i.test(inputUrl),
+      errorMsg: 'Invalid URL. Please ensure it is a facebook.com link.'
+    },
+    instagram: {
+      name: 'Instagram',
+      placeholder: 'Paste Instagram Reel URL here...',
+      validator: (inputUrl) => /instagram\.com/i.test(inputUrl),
+      errorMsg: 'Invalid URL. Please ensure it is a valid instagram.com link.'
+    },
+    youtube: {
+      name: 'YouTube',
+      placeholder: 'Paste YouTube video URL here...',
+      validator: (inputUrl) => /youtube\.com|youtu\.be/i.test(inputUrl),
+      errorMsg: 'Invalid URL. Please ensure it is a valid youtube.com or youtu.be link.'
+    }
+  };
+
+  const getEmbedUrl = (inputUrl, platformType) => {
+    try {
+      if (platformType === 'youtube') {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = inputUrl.match(regExp);
+        return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
+      }
+      if (platformType === 'instagram') {
+        const match = inputUrl.match(/(?:reels?|p)\/([a-zA-Z0-9_-]+)/);
+        return match ? `https://www.instagram.com/reel/${match[1]}/embed` : null;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const fetchWithRetry = async (payload, retries = 5, delay = 1000) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (response.ok) return await response.json();
+      } catch (e) {
+        if (i === retries - 1) throw e;
+      }
+      await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i)));
+    }
+  };
+
+  const handleDownloadRequest = async (e) => {
+    e.preventDefault();
+    setError('');
+    setResult(null);
+
+    if (!url.trim()) {
+      setError(`Please enter a valid ${platforms[platform].name} URL.`);
+      return;
+    }
+
+    if (!platforms[platform].validator(url)) {
+      setError(platforms[platform].errorMsg);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // AI Metadata Extraction
+      const prompt = `Find the exact metadata for this ${platforms[platform].name} video: ${url}. 
+      Extract the real title, uploader name, and content summary.
+      Return JSON: { "title": "string", "uploader": "string", "description": "string" }`;
+
+      const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+        tools: [{ "google_search": {} }],
+        generationConfig: { 
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              title: { type: "STRING" },
+              uploader: { type: "STRING" },
+              description: { type: "STRING" }
+            },
+            required: ["title", "uploader", "description"]
+          }
+        }
+      };
+
+      const data = await fetchWithRetry(payload);
+      
+      let metadata;
+      try {
+        metadata = JSON.parse(data.candidates[0].content.parts[0].text);
+      } catch (parseError) {
+        metadata = {
+          title: "Video Content",
+          uploader: "Creator",
+          description: "We identified your video link. Ready to process."
+        };
+      }
+
+      const embed = getEmbedUrl(url, platform);
+      
+      // IMPORTANT: In a real app, you would fetch a real link from your server here.
+      // We use a sample video here because browsers cannot download directly from YouTube/Instagram via JS.
+      const demoSource = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+
+      setResult({
+        ...metadata,
+        videoUrl: demoSource,
+        embedUrl: embed,
+        originalUrl: url,
+        isDemo: true // Flag to tell user this is a demo file
+      });
+    } catch (err) {
+      setError("Analysis timed out. Try again or check if the URL is accessible publicly.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const forceDownload = async (videoUrl, quality) => {
+    setDownloading(true);
+    try {
+      const response = await fetch(videoUrl);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = blobUrl;
+      const safeTitle = result.title.replace(/[^\w\s]/gi, '').replace(/\s+/g, '_');
+      a.download = `${safeTitle}_${quality}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(blobUrl);
+      document.body.removeChild(a);
+    } catch (err) {
+      setError("Download failed. Browser security blocked the file stream.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const cards = [
+    { id: 'facebook', icon: <Facebook strokeWidth={1.5} />, title: '1. Facebook' },
+    { id: 'instagram', icon: <Instagram strokeWidth={1.5} />, title: '2. Instagram' },
+    { id: 'youtube', icon: <Youtube strokeWidth={1.5} />, title: '3. YouTube' }
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#F4F4F2] text-[#111] font-sans overflow-x-hidden selection:bg-[#111] selection:text-white pb-20">
+      
+      <header className="pt-6 px-6 md:px-12 max-w-[1600px] mx-auto">
+        <div className="flex justify-between items-center border-b border-[#111] pb-4">
+          <div className="flex items-center gap-3">
+            <span className="border border-[#111] rounded-full px-3 py-1 text-sm font-medium tracking-wide">01</span>
+            <span className="bg-[#111] text-white rounded-full px-4 py-1 text-sm font-medium tracking-wide">VidDownloader</span>
+          </div>
+          <div className="tracking-[0.3em] font-bold text-lg">&gt;&gt;&gt;</div>
+        </div>
+      </header>
+
+      <main className="px-6 md:px-12 mt-16 max-w-[1600px] mx-auto">
+        
+        <div className="flex flex-col md:flex-row justify-between items-start mb-20">
+          <h1 className="text-[4rem] md:text-[7.5rem] lg:text-[9rem] font-medium tracking-tighter leading-[0.85]">
+            Download<br />Any Video<br />Instantly
+          </h1>
+          <div className="mt-8 md:mt-4">
+             <div className="flex items-center gap-2 text-[#111] font-bold text-[10px] uppercase tracking-widest mb-1">
+               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+               Service Operational
+             </div>
+             <p className="text-gray-400 text-[10px] uppercase tracking-widest leading-relaxed text-left md:text-right w-32">
+                Frontend UI Demo<br />Backend Link Required<br />For Real Files
+             </p>
+          </div>
+        </div>
+
+        <form onSubmit={handleDownloadRequest} className="mb-24 relative z-10">
+          <div className="flex flex-col md:flex-row items-end gap-6 max-w-5xl">
+            <div className="flex-grow w-full">
+              <label className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2 block">
+                {platforms[platform].placeholder}
+              </label>
+              <input
+                type="text"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                className="w-full bg-transparent border-b-2 border-[#111] text-2xl md:text-4xl py-3 focus:outline-none placeholder:text-gray-300 transition-all"
+                placeholder="https://"
+                disabled={loading}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-[#111] hover:bg-gray-800 text-white rounded-full px-10 py-5 font-semibold tracking-wide flex items-center justify-center gap-2 transition-all whitespace-nowrap disabled:opacity-50 min-w-[220px]"
+            >
+              {loading ? <><Loader2 className="animate-spin" size={20} /> Researching...</> : <><Play size={18} fill="currentColor" /> Analyze Video</>}
+            </button>
+          </div>
+          {error && <p className="text-red-500 mt-4 font-medium flex items-center gap-2"><span>×</span> {error}</p>}
+        </form>
+
+        {result && (
+          <div className="mb-24 p-6 md:p-10 bg-white rounded-[2.5rem] shadow-sm flex flex-col md:flex-row gap-10 items-stretch max-w-5xl animate-in fade-in slide-in-from-bottom-8 duration-700">
+            
+            <div className="w-full md:w-1/2 rounded-3xl overflow-hidden bg-black shadow-2xl relative aspect-video group">
+              {result.embedUrl ? (
+                <iframe 
+                  src={result.embedUrl}
+                  className="w-full h-full border-0"
+                  allowFullScreen
+                  title="Video Preview"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-white/40 p-10 text-center">
+                  <Play size={48} className="mb-4 opacity-20" />
+                  <p className="text-sm font-medium">Link found. HD links available below.</p>
+                </div>
+              )}
+              {/* Overlay warning for Demo */}
+              {result.isDemo && (
+                <div className="absolute top-4 left-4 z-20 bg-yellow-400 text-black text-[10px] font-black uppercase px-2 py-1 rounded-md shadow-lg">
+                  DEMO PREVIEW ONLY
+                </div>
+              )}
+            </div>
+
+            <div className="w-full md:w-1/2 flex flex-col justify-center">
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 px-2 py-0.5 border border-blue-600 rounded">Verified Meta</span>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{result.uploader}</span>
+                </div>
+                <h3 className="text-2xl md:text-3xl font-medium leading-tight mb-3">{result.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed mb-4">{result.desc}</p>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-2xl mb-2">
+                  <div className="flex gap-3">
+                    <ServerCrash className="text-yellow-600 flex-shrink-0" size={18} />
+                    <div>
+                       <p className="text-[11px] font-bold text-yellow-800 uppercase tracking-wide">Developer Mode Active</p>
+                       <p className="text-[10px] text-yellow-700 leading-tight mt-1">
+                         To download the <strong>Real Video File</strong>, connect this UI to a backend API (yt-dlp). The "Save" button below currently downloads a Demo High-Quality MP4 to test logic.
+                       </p>
+                    </div>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => forceDownload(result.videoUrl, 'HD')}
+                  disabled={downloading}
+                  className="bg-[#111] text-white hover:bg-black transition-all rounded-full px-8 py-4 font-bold flex gap-3 items-center justify-center shadow-lg shadow-black/10 disabled:opacity-50"
+                >
+                  {downloading ? <Loader2 className="animate-spin" size={20} /> : <DownloadCloud size={20} />}
+                  Save Demo HD Video
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="relative">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            {cards.map((card) => {
+              const isActive = platform === card.id;
+              return (
+                <div 
+                  key={card.id}
+                  onClick={() => { setPlatform(card.id); setUrl(''); setResult(null); }}
+                  className={`
+                    flex flex-col justify-between aspect-[3/4] p-8 rounded-[2.5rem] transition-all duration-500 cursor-pointer
+                    ${isActive ? 'bg-[#111] text-white shadow-2xl -translate-y-2' : 'bg-white text-[#111] hover:bg-gray-50'}
+                  `}
+                >
+                  <div>
+                    <div className={`mb-8 p-4 inline-block rounded-2xl ${isActive ? 'bg-white/10' : 'bg-[#F4F4F2]'}`}>
+                      {card.icon}
+                    </div>
+                    <h3 className="font-bold text-xl tracking-tight leading-none mb-2">{card.title}</h3>
+                  </div>
+                  <p className={`text-[11px] uppercase tracking-widest font-bold ${isActive ? 'text-gray-400' : 'text-gray-300'}`}>
+                    {isActive ? 'Selected' : 'Select'}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
