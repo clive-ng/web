@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Batch Cleaner Pro</title>
+    <title>AI Batch Cleaner Pro 1.0 </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -25,11 +25,16 @@
         const { useState, useRef } = React;
 
         const App = () => {
+            // --- CONFIGURATION ---
             const apiKey = "AIzaSyAw_XAEgiSNPXfduMG12c6UiXnmHOfln3c"; 
-            const MODEL_ENDPOINT = "gemini-2.5-flash-image";
+            // gemini-1.5-pro is currently the most stable for returning image data (modalities)
+            const MODEL_ENDPOINT = "gemini-1.5-pro"; 
 
             const [images, setImages] = useState([]);
-            const [prompt, setPrompt] = useState("Remove all text and handwriting from the dress, leaving it plain and clean. Keep the original school logo. Professional photography quality.");
+            const [prompt, setPrompt] = useState(
+                "Modify the image: Remove all text, handwriting, and graphics from the dress. Make the dress plain and clean but keep the original school logo. The output must be a high-quality, photorealistic image."
+            );
+            
             const [namePrefix, setNamePrefix] = useState("unitf");
             const [downloadCount, setDownloadCount] = useState(1);
             const [zeroPadding, setZeroPadding] = useState(3);
@@ -37,6 +42,7 @@
             const [isDragging, setIsDragging] = useState(false);
             const fileInputRef = useRef(null);
 
+            // --- Handlers ---
             const processFiles = (files) => {
                 const validFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
                 validFiles.forEach(file => {
@@ -55,7 +61,6 @@
                 });
             };
 
-            // Fix for Drag and Drop
             const handleDragOver = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -72,9 +77,7 @@
                 e.preventDefault();
                 e.stopPropagation();
                 setIsDragging(false);
-                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                    processFiles(e.dataTransfer.files);
-                }
+                if (e.dataTransfer.files) processFiles(e.dataTransfer.files);
             };
 
             const handleGenerateBatch = async () => {
@@ -104,8 +107,8 @@
                                         ]
                                     }],
                                     generationConfig: {
-                                        // Some regions require explicit modality settings
-                                        responseModalities: ["IMAGE"] 
+                                        // Crucial: Telling the model we expect an image back
+                                        responseModalities: ["IMAGE"]
                                     }
                                 })
                             }
@@ -114,10 +117,12 @@
                         const data = await response.json();
                         
                         if (!response.ok) {
-                            throw new Error(data.error?.message || "Check API Key or Model access.");
+                            throw new Error(data.error?.message || "API Request Failed");
                         }
 
+                        // Search for the image data in the response
                         const outPart = data.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+                        const textPart = data.candidates?.[0]?.content?.parts?.find(p => p.text);
                         
                         if (outPart?.inlineData?.data) {
                             const resultUrl = `data:image/png;base64,${outPart.inlineData.data}`;
@@ -134,8 +139,10 @@
 
                             currentCounter++;
                             setDownloadCount(currentCounter);
+                        } else if (textPart) {
+                            throw new Error("AI returned text instead of an image: " + textPart.text.substring(0, 50) + "...");
                         } else {
-                            throw new Error("AI did not return an image. It may have returned text instead.");
+                            throw new Error("No image data found. Ensure your API Key supports Image Generation.");
                         }
                     } catch (err) {
                         setImages(prev => prev.map(i => i.id === img.id ? { ...i, status: 'error', error: err.message } : i));
@@ -149,65 +156,75 @@
                     <header className="flex items-center gap-4">
                         <div className="p-3 bg-indigo-600 rounded-2xl text-white shadow-lg"><i className="fa-solid fa-wand-magic-sparkles text-2xl"></i></div>
                         <div>
-                            <h1 className="text-3xl font-black text-slate-800">Batch Cleaner</h1>
-                            <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">Fixed Drag-and-Drop + Modality</p>
+                            <h1 className="text-3xl font-black text-slate-800">Batch AI Cleaner</h1>
+                            <p className="text-slate-400 text-sm font-bold uppercase tracking-widest leading-none mt-1">
+                                Modalitity Fixed • {MODEL_ENDPOINT}
+                            </p>
                         </div>
                     </header>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div className="space-y-6">
+                            {/* Upload Area */}
                             <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 space-y-4">
                                 <div className="flex justify-between items-center font-bold">
                                     <span><i className="fa-solid fa-images text-indigo-500 mr-2"></i> Queue ({images.length})</span>
-                                    {images.length > 0 && <button onClick={() => setImages([])} className="text-red-400 text-xs uppercase underline">Clear</button>}
+                                    {images.length > 0 && <button onClick={() => setImages([])} className="text-red-400 text-xs uppercase hover:underline">Clear</button>}
                                 </div>
-                                
                                 <div 
                                     onDragOver={handleDragOver}
                                     onDragLeave={handleDragLeave}
                                     onDrop={handleDrop}
                                     onClick={() => !isProcessing && fileInputRef.current?.click()}
-                                    className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all duration-200
-                                    ${isDragging ? 'border-indigo-500 bg-indigo-100 scale-[1.02]' : 'border-slate-200 bg-slate-50 hover:bg-slate-100'}
-                                    ${isProcessing ? 'opacity-50 pointer-events-none' : ''}`}
-                                >
+                                    className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all
+                                    ${isDragging ? 'border-indigo-500 bg-indigo-50 scale-[1.01]' : 'border-slate-200 bg-slate-50 hover:bg-slate-100'}
+                                    ${isProcessing ? 'opacity-50 pointer-events-none' : ''}`}>
                                     <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={(e) => processFiles(e.target.files)} />
-                                    <i className={`fa-solid ${isDragging ? 'fa-hand-holding-heart bounce text-indigo-500' : 'fa-cloud-arrow-up text-slate-300'} text-4xl mb-2`}></i>
-                                    <p className="text-slate-600 font-bold">{isDragging ? "Drop them now!" : "Drag & Drop or Click to Upload"}</p>
+                                    <i className={`fa-solid ${isDragging ? 'fa-hand-sparkles' : 'fa-cloud-arrow-up'} text-3xl text-slate-300 mb-2`}></i>
+                                    <p className="text-slate-600 font-bold">{isDragging ? "Drop images here!" : "Drag & Drop or Click to Upload"}</p>
                                 </div>
                             </section>
 
-                            <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 space-y-4">
+                            {/* Settings */}
+                            <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 space-y-6">
                                 <div className="grid grid-cols-3 gap-4">
-                                    <div><label className="text-[10px] font-bold text-slate-500 uppercase">Prefix</label><input type="text" value={namePrefix} onChange={(e) => setNamePrefix(e.target.value)} className="w-full p-2 bg-slate-50 border rounded-xl font-bold" /></div>
-                                    <div><label className="text-[10px] font-bold text-slate-500 uppercase">Start At</label><input type="number" value={downloadCount} onChange={(e) => setDownloadCount(parseInt(e.target.value))} className="w-full p-2 bg-slate-50 border rounded-xl font-bold" /></div>
-                                    <div><label className="text-[10px] font-bold text-slate-500 uppercase">Digits</label><select value={zeroPadding} onChange={(e) => setZeroPadding(parseInt(e.target.value))} className="w-full p-2 bg-slate-50 border rounded-xl font-bold font-bold"><option value="1">1</option><option value="2">01</option><option value="3">001</option></select></div>
+                                    <div><label className="text-[10px] font-bold text-slate-500 uppercase">Prefix</label><input type="text" value={namePrefix} onChange={(e) => setNamePrefix(e.target.value)} className="w-full p-2 bg-slate-50 border rounded-xl font-bold outline-indigo-500" /></div>
+                                    <div><label className="text-[10px] font-bold text-slate-500 uppercase">Start At</label><input type="number" value={downloadCount} onChange={(e) => setDownloadCount(parseInt(e.target.value))} className="w-full p-2 bg-slate-50 border rounded-xl font-bold outline-indigo-500" /></div>
+                                    <div><label className="text-[10px] font-bold text-slate-500 uppercase">Digits</label><select value={zeroPadding} onChange={(e) => setZeroPadding(parseInt(e.target.value))} className="w-full p-2 bg-slate-50 border rounded-xl font-bold outline-indigo-500"><option value="1">1</option><option value="2">01</option><option value="3">001</option></select></div>
                                 </div>
-                                <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} className="w-full min-h-[100px] p-4 text-xs bg-slate-50 border rounded-2xl font-medium outline-none focus:ring-2 focus:ring-indigo-500" />
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase">Instructions</label>
+                                    <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} className="w-full min-h-[100px] p-4 text-xs bg-slate-50 border rounded-2xl font-medium leading-relaxed outline-indigo-500 resize-none" />
+                                </div>
                                 <button onClick={handleGenerateBatch} disabled={isProcessing || images.length === 0}
-                                    className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 text-white font-black rounded-2xl shadow-xl transition-all">
-                                    {isProcessing ? <i className="fa-solid fa-sync fa-spin mr-2"></i> : <i className="fa-solid fa-bolt mr-2"></i>}
-                                    {isProcessing ? 'Processing Batch...' : 'Run Cleaning Process'}
+                                    className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 text-white font-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-3">
+                                    {isProcessing ? <><i className="fa-solid fa-spinner fa-spin"></i> Processing...</> : <><i className="fa-solid fa-bolt"></i> Run Process</>}
                                 </button>
                             </section>
                         </div>
 
-                        <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 flex flex-col min-h-[500px]">
-                            <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2"><i className="fa-solid fa-circle-check text-emerald-500"></i> Gallery</h2>
+                        {/* Gallery */}
+                        <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 flex flex-col min-h-[550px]">
+                            <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2"><i className="fa-solid fa-layer-group text-emerald-500"></i> Output</h2>
                             <div className="flex-grow overflow-y-auto custom-scrollbar">
                                 {images.length === 0 ? (
-                                    <div className="h-full flex flex-col items-center justify-center text-slate-300 opacity-50"><i className="fa-solid fa-wand-magic text-5xl mb-4"></i><p className="font-bold">No images processed yet</p></div>
+                                    <div className="h-full flex flex-col items-center justify-center text-slate-300 opacity-50"><i className="fa-solid fa-wand-magic-sparkles text-5xl mb-4"></i><p className="font-bold text-sm uppercase tracking-widest">Queue empty</p></div>
                                 ) : (
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-2 gap-4 pr-2">
                                         {images.map(img => (
-                                            <div key={img.id} className="bg-slate-50 border border-slate-200 rounded-2xl p-2 space-y-2">
-                                                <div className="aspect-square rounded-xl overflow-hidden bg-slate-200 flex items-center justify-center">
+                                            <div key={img.id} className="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-3 relative group transition-all hover:bg-white hover:border-indigo-100">
+                                                <div className="aspect-square rounded-xl overflow-hidden bg-slate-200 flex items-center justify-center border">
                                                     {img.status === 'done' ? <img src={img.resultUrl} className="w-full h-full object-contain" /> :
-                                                     img.status === 'processing' ? <i className="fa-solid fa-sync fa-spin text-indigo-500 text-2xl"></i> :
-                                                     img.status === 'error' ? <div className="p-2 text-[9px] text-red-600 font-bold text-center">{img.error}</div> :
-                                                     <i className="fa-solid fa-hourglass-start text-slate-300 text-xl"></i>}
+                                                     img.status === 'processing' ? <div className="text-center animate-pulse-soft"><i className="fa-solid fa-sync fa-spin text-indigo-500 text-2xl mb-2"></i><p className="text-[9px] font-black text-indigo-500 uppercase">Generating...</p></div> :
+                                                     img.status === 'error' ? <div className="p-2 text-[9px] text-red-600 font-bold text-center leading-tight"><i className="fa-solid fa-circle-xmark text-xl mb-1"></i><br/>{img.error}</div> :
+                                                     <img src={img.dataUrl} className="w-full h-full object-cover opacity-40 grayscale" />}
                                                 </div>
-                                                <p className="text-[10px] font-bold text-slate-500 truncate text-center">{img.fileName || 'Pending'}</p>
+                                                <div className="flex items-center justify-between">
+                                                    <p className="text-[10px] font-bold text-slate-500 truncate max-w-[100px]">{img.fileName || 'Queued'}</p>
+                                                    {img.status === 'done' && (
+                                                        <a href={img.resultUrl} download={img.fileName} className="text-emerald-500 hover:text-emerald-700 transition-colors"><i className="fa-solid fa-download"></i></a>
+                                                    )}
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
