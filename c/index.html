@@ -25,35 +25,17 @@
         const { useState, useRef } = React;
 
         const App = () => {
-            // --- CONFIGURATION ---
             const apiKey = "AIzaSyAw_XAEgiSNPXfduMG12c6UiXnmHOfln3c"; 
-            const MODEL_ENDPOINT = "gemini-2.0-flash";
+            const MODEL_ENDPOINT = "gemini-2.0-flash"; 
 
             const [images, setImages] = useState([]);
-            const [prompt, setPrompt] = useState(
-                "Remove all the text, hand-drawn graphics, hand writing from the girl's dress and collar, making it a plain clean dress but leave the blue or red ribbon if it has. IMPORTANT: make sure all of the text are remove. Keep the original school logo on her dress. The new subject should look natural and photorealistic, with realistic skin texture, accurate facial proportions, and seamless blending into the scene. Match the original shadows, colour temperature, and perspective so the replacement is indistinguishable from the original photograph. High detail, sharp focus, professional photography quality."
-            );
-            
+            const [prompt, setPrompt] = useState("Remove all text and handwriting from the dress, leaving it plain and clean. Keep the original school logo. Professional photography quality.");
             const [namePrefix, setNamePrefix] = useState("unitf");
             const [downloadCount, setDownloadCount] = useState(1);
             const [zeroPadding, setZeroPadding] = useState(3);
             const [isProcessing, setIsProcessing] = useState(false);
+            const [isDragging, setIsDragging] = useState(false);
             const fileInputRef = useRef(null);
-
-            // --- API Helper ---
-            const fetchWithRetry = async (url, options, retries = 3) => {
-                for (let i = 0; i < retries; i++) {
-                    try {
-                        const response = await fetch(url, options);
-                        const data = await response.json();
-                        if (!response.ok) throw new Error(data.error?.message || "API Error");
-                        return data;
-                    } catch (err) {
-                        if (i === retries - 1) throw err;
-                        await new Promise(res => setTimeout(res, 2000));
-                    }
-                }
-            };
 
             const processFiles = (files) => {
                 const validFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
@@ -73,6 +55,28 @@
                 });
             };
 
+            // Fix for Drag and Drop
+            const handleDragOver = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragging(true);
+            };
+
+            const handleDragLeave = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragging(false);
+            };
+
+            const handleDrop = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragging(false);
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    processFiles(e.dataTransfer.files);
+                }
+            };
+
             const handleGenerateBatch = async () => {
                 const pending = images.filter(img => img.status === 'idle' || img.status === 'error');
                 if (pending.length === 0 || isProcessing) return;
@@ -87,21 +91,34 @@
                         const base64Data = img.dataUrl.split(',')[1];
                         const mimeType = img.dataUrl.match(/data:(.*?);base64/)[1];
 
-                        const result = await fetchWithRetry(
+                        const response = await fetch(
                             `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ENDPOINT}:generateContent?key=${apiKey}`,
                             {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
                                     contents: [{
-                                        parts: [{ text: prompt }, { inlineData: { mimeType, data: base64Data } }]
+                                        parts: [
+                                            { text: prompt },
+                                            { inlineData: { mimeType, data: base64Data } }
+                                        ]
                                     }],
-                                    generationConfig: { responseModalities: ["TEXT", "IMAGE"] }
+                                    generationConfig: {
+                                        // Some regions require explicit modality settings
+                                        responseModalities: ["IMAGE"] 
+                                    }
                                 })
                             }
                         );
 
-                        const outPart = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+                        const data = await response.json();
+                        
+                        if (!response.ok) {
+                            throw new Error(data.error?.message || "Check API Key or Model access.");
+                        }
+
+                        const outPart = data.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+                        
                         if (outPart?.inlineData?.data) {
                             const resultUrl = `data:image/png;base64,${outPart.inlineData.data}`;
                             const finalFileName = `${namePrefix}${String(currentCounter).padStart(zeroPadding, '0')}.png`;
@@ -118,7 +135,7 @@
                             currentCounter++;
                             setDownloadCount(currentCounter);
                         } else {
-                            throw new Error("No image returned. Try simplifying prompt.");
+                            throw new Error("AI did not return an image. It may have returned text instead.");
                         }
                     } catch (err) {
                         setImages(prev => prev.map(i => i.id === img.id ? { ...i, status: 'error', error: err.message } : i));
@@ -130,96 +147,67 @@
             return (
                 <div className="min-h-screen p-4 md:p-8 max-w-6xl mx-auto space-y-8">
                     <header className="flex items-center gap-4">
-                        <div className="p-3 bg-indigo-600 rounded-2xl text-white shadow-lg">
-                            <i className="fa-solid fa-wand-sparkles text-2xl"></i>
-                        </div>
+                        <div className="p-3 bg-indigo-600 rounded-2xl text-white shadow-lg"><i className="fa-solid fa-wand-magic-sparkles text-2xl"></i></div>
                         <div>
-                            <h1 className="text-3xl font-black text-slate-800 tracking-tight">Batch Cleaner</h1>
-                            <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">Model Active: {MODEL_ENDPOINT}</p>
+                            <h1 className="text-3xl font-black text-slate-800">Batch Cleaner</h1>
+                            <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">Fixed Drag-and-Drop + Modality</p>
                         </div>
                     </header>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div className="space-y-6">
-                            {/* Upload Area */}
                             <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 space-y-4">
                                 <div className="flex justify-between items-center font-bold">
                                     <span><i className="fa-solid fa-images text-indigo-500 mr-2"></i> Queue ({images.length})</span>
-                                    {images.length > 0 && <button onClick={() => setImages([])} className="text-red-400 text-xs uppercase hover:underline">Clear All</button>}
+                                    {images.length > 0 && <button onClick={() => setImages([])} className="text-red-400 text-xs uppercase underline">Clear</button>}
                                 </div>
-                                <div onClick={() => !isProcessing && fileInputRef.current?.click()}
-                                    className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all
-                                    ${isProcessing ? 'opacity-50 grayscale' : 'hover:border-indigo-400 hover:bg-indigo-50 border-slate-200 bg-slate-50'}`}>
+                                
+                                <div 
+                                    onDragOver={handleDragOver}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={handleDrop}
+                                    onClick={() => !isProcessing && fileInputRef.current?.click()}
+                                    className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all duration-200
+                                    ${isDragging ? 'border-indigo-500 bg-indigo-100 scale-[1.02]' : 'border-slate-200 bg-slate-50 hover:bg-slate-100'}
+                                    ${isProcessing ? 'opacity-50 pointer-events-none' : ''}`}
+                                >
                                     <input type="file" multiple accept="image/*" className="hidden" ref={fileInputRef} onChange={(e) => processFiles(e.target.files)} />
-                                    <i className="fa-solid fa-cloud-arrow-up text-3xl text-slate-300 mb-2"></i>
-                                    <p className="text-slate-600 font-bold">Select or Drop Images</p>
+                                    <i className={`fa-solid ${isDragging ? 'fa-hand-holding-heart bounce text-indigo-500' : 'fa-cloud-arrow-up text-slate-300'} text-4xl mb-2`}></i>
+                                    <p className="text-slate-600 font-bold">{isDragging ? "Drop them now!" : "Drag & Drop or Click to Upload"}</p>
                                 </div>
                             </section>
 
-                            {/* Batch Settings */}
-                            <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
-                                <h3 className="font-black text-[10px] text-slate-400 uppercase tracking-[0.2em] mb-4">Naming Convention</h3>
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="text-[10px] font-bold text-slate-500 block mb-1 uppercase text-xs">Prefix</label>
-                                        <input type="text" value={namePrefix} onChange={(e) => setNamePrefix(e.target.value)} className="w-full p-2 bg-slate-50 border rounded-xl text-sm font-bold outline-indigo-500" />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-bold text-slate-500 block mb-1 uppercase text-xs">Start At</label>
-                                        <input type="number" value={downloadCount} onChange={(e) => setDownloadCount(parseInt(e.target.value))} className="w-full p-2 bg-slate-50 border rounded-xl text-sm font-bold outline-indigo-500" />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-bold text-slate-500 block mb-1 uppercase text-xs">Digits</label>
-                                        <select value={zeroPadding} onChange={(e) => setZeroPadding(parseInt(e.target.value))} className="w-full p-2 bg-slate-50 border rounded-xl text-sm font-bold outline-indigo-500">
-                                            <option value="1">1</option><option value="2">01</option><option value="3">001</option><option value="4">0001</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* Action Prompt */}
                             <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 space-y-4">
-                                <h3 className="font-black text-[10px] text-slate-400 uppercase tracking-[0.2em] text-xs">Instructions</h3>
-                                <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} className="w-full min-h-[120px] p-4 text-xs bg-slate-50 border rounded-2xl font-medium leading-relaxed outline-indigo-500" />
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div><label className="text-[10px] font-bold text-slate-500 uppercase">Prefix</label><input type="text" value={namePrefix} onChange={(e) => setNamePrefix(e.target.value)} className="w-full p-2 bg-slate-50 border rounded-xl font-bold" /></div>
+                                    <div><label className="text-[10px] font-bold text-slate-500 uppercase">Start At</label><input type="number" value={downloadCount} onChange={(e) => setDownloadCount(parseInt(e.target.value))} className="w-full p-2 bg-slate-50 border rounded-xl font-bold" /></div>
+                                    <div><label className="text-[10px] font-bold text-slate-500 uppercase">Digits</label><select value={zeroPadding} onChange={(e) => setZeroPadding(parseInt(e.target.value))} className="w-full p-2 bg-slate-50 border rounded-xl font-bold font-bold"><option value="1">1</option><option value="2">01</option><option value="3">001</option></select></div>
+                                </div>
+                                <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} className="w-full min-h-[100px] p-4 text-xs bg-slate-50 border rounded-2xl font-medium outline-none focus:ring-2 focus:ring-indigo-500" />
                                 <button onClick={handleGenerateBatch} disabled={isProcessing || images.length === 0}
-                                    className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 text-white font-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95">
-                                    {isProcessing ? <><i className="fa-solid fa-spinner fa-spin"></i> Processing...</> : <><i className="fa-solid fa-bolt"></i> Run Batch Process</>}
+                                    className="w-full py-5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 text-white font-black rounded-2xl shadow-xl transition-all">
+                                    {isProcessing ? <i className="fa-solid fa-sync fa-spin mr-2"></i> : <i className="fa-solid fa-bolt mr-2"></i>}
+                                    {isProcessing ? 'Processing Batch...' : 'Run Cleaning Process'}
                                 </button>
                             </section>
                         </div>
 
-                        {/* Gallery Section */}
-                        <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 flex flex-col min-h-[600px]">
-                            <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                                <i className="fa-solid fa-layer-group text-emerald-500"></i> Results Gallery
-                            </h2>
-                            <div className="flex-grow overflow-y-auto custom-scrollbar pr-2">
+                        <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 flex flex-col min-h-[500px]">
+                            <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2"><i className="fa-solid fa-circle-check text-emerald-500"></i> Gallery</h2>
+                            <div className="flex-grow overflow-y-auto custom-scrollbar">
                                 {images.length === 0 ? (
-                                    <div className="h-full flex flex-col items-center justify-center text-slate-300 opacity-50">
-                                        <i className="fa-solid fa-circle-nodes text-6xl mb-4"></i>
-                                        <p className="font-bold">Waiting for input...</p>
-                                    </div>
+                                    <div className="h-full flex flex-col items-center justify-center text-slate-300 opacity-50"><i className="fa-solid fa-wand-magic text-5xl mb-4"></i><p className="font-bold">No images processed yet</p></div>
                                 ) : (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-2 gap-4">
                                         {images.map(img => (
-                                            <div key={img.id} className="bg-slate-50 border border-slate-200 rounded-3xl p-4 space-y-4 relative group hover:bg-white hover:border-indigo-100 transition-all">
-                                                <div className="aspect-square rounded-2xl overflow-hidden bg-slate-200 flex items-center justify-center border">
+                                            <div key={img.id} className="bg-slate-50 border border-slate-200 rounded-2xl p-2 space-y-2">
+                                                <div className="aspect-square rounded-xl overflow-hidden bg-slate-200 flex items-center justify-center">
                                                     {img.status === 'done' ? <img src={img.resultUrl} className="w-full h-full object-contain" /> :
-                                                     img.status === 'processing' ? <div className="text-center animate-pulse-soft"><i className="fa-solid fa-sync fa-spin text-indigo-500 text-3xl mb-2"></i><p className="text-[10px] font-black text-indigo-500 uppercase">Cleaning...</p></div> :
-                                                     img.status === 'error' ? <div className="p-4 text-center"><i className="fa-solid fa-triangle-exclamation text-red-400 mb-1 text-2xl"></i><p className="text-[10px] text-red-600 font-bold leading-tight">{img.error}</p></div> :
-                                                     <i className="fa-solid fa-hourglass text-slate-300 text-2xl"></i>}
+                                                     img.status === 'processing' ? <i className="fa-solid fa-sync fa-spin text-indigo-500 text-2xl"></i> :
+                                                     img.status === 'error' ? <div className="p-2 text-[9px] text-red-600 font-bold text-center">{img.error}</div> :
+                                                     <i className="fa-solid fa-hourglass-start text-slate-300 text-xl"></i>}
                                                 </div>
-                                                <div className="flex items-center justify-between">
-                                                    <div className="min-w-0">
-                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Output Name</p>
-                                                        <p className="text-xs font-bold text-slate-700 truncate">{img.fileName || 'Pending...'}</p>
-                                                    </div>
-                                                    {img.status === 'done' && (
-                                                        <a href={img.resultUrl} download={img.fileName} className="h-10 w-10 bg-white shadow-sm border rounded-xl flex items-center justify-center text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all">
-                                                            <i className="fa-solid fa-download"></i>
-                                                        </a>
-                                                    )}
-                                                </div>
+                                                <p className="text-[10px] font-bold text-slate-500 truncate text-center">{img.fileName || 'Pending'}</p>
                                             </div>
                                         ))}
                                     </div>
