@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grade Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f6f5f1; --card: #ffffff; --border: #e3e0d7;
+  --text: #1a1814; --muted: #8c8880; --accent: #2563eb;
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 40px 28px 80px; }
+
+.header { margin-bottom: 28px; }
+.header-top { display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+.subject-label { font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.subject-name { font-family: 'Syne', sans-serif; font-size: 2.1rem; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
+.header-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; align-items: center; }
+.pill { padding: 5px 13px; border-radius: 999px; font-size: .75rem; font-weight: 600; border: 1.5px solid; white-space: nowrap; }
+
+.toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 15px;
+  border-radius: 9px; font-family: 'DM Sans', sans-serif; font-size: .8rem; font-weight: 600;
+  cursor: pointer; border: 1.5px solid var(--border); background: var(--card); color: var(--text);
+  transition: background .15s, transform .1s; white-space: nowrap;
+}
+.btn:hover { background: #eeece6; }
+.btn:active { transform: scale(.97); }
+.btn.primary { background: var(--text); color: #fff; border-color: var(--text); }
+.btn.primary:hover { background: #2e2b25; }
+.btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.format-hint {
+  background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
+  padding: 14px 18px; margin-bottom: 14px; font-size: .8rem; line-height: 1.7; display: none;
+}
+.format-hint strong { display: block; margin-bottom: 4px; font-weight: 600; }
+.format-hint code { background: #fef3c7; padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: .77rem; }
+.format-hint .example { margin-top: 8px; background: #fefce8; border-radius: 6px; padding: 8px 12px; font-family: monospace; font-size: .74rem; line-height: 1.9; color: #78350f; white-space: pre; }
+
+.legend {
+  display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+  padding: 10px 16px; background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; margin-bottom: 14px;
+}
+.leg { display: flex; align-items: center; gap: 6px; font-size: .72rem; font-weight: 500; color: var(--muted); }
+.leg-dot { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
+
+.table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; overflow-x: auto; box-shadow: 0 1px 4px rgba(0,0,0,.04); }
+table { width: 100%; border-collapse: collapse; min-width: 960px; }
+thead th { background: #1a1814; color: rgba(255,255,255,.88); font-size: .67rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; padding: 12px 13px; text-align: left; white-space: nowrap; }
+thead th.c { text-align: center; }
+tbody tr.data-row:hover td { filter: brightness(.97); }
+td { padding: 9px 13px; border-bottom: 1px solid var(--border); font-size: .845rem; vertical-align: middle; transition: background .25s; }
+tbody tr:last-child td { border-bottom: none; }
+td.c { text-align: center; }
+tr.total-row td { border-top: 2px solid var(--border); background: #f8f7f3 !important; font-weight: 700; font-size: .875rem; }
+
+.sparx-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;
+  padding: 3px 9px; font-family: monospace; font-size: .78rem; font-weight: 700;
+  color: #1d4ed8; cursor: pointer; transition: background .15s, transform .1s;
+  user-select: none; margin: 1px 2px 1px 0;
+}
+.sparx-chip:hover { background: #dbeafe; transform: scale(1.04); }
+.sparx-chip.copied { background: #dcfce7; border-color: #86efac; color: #15803d; }
+.sparx-chip .ico { font-size: .7rem; opacity: .5; }
+
+.pct-wrap { display: flex; align-items: center; gap: 7px; justify-content: center; }
+.pct-bar { width: 56px; height: 6px; border-radius: 999px; background: #e8e4dc; overflow: hidden; }
+.pct-fill { height: 100%; border-radius: 999px; transition: width .4s ease; }
+.pct-lbl { font-size: .77rem; font-weight: 700; min-width: 32px; text-align: right; }
+
+.sp-inputs { display: flex; align-items: center; gap: 3px; justify-content: center; }
+.sp-inputs input { width: 40px; padding: 4px 5px; border: 1.5px solid var(--border); border-radius: 6px; font-size: .78rem; font-family: inherit; text-align: center; background: #fafaf8; outline: none; transition: border-color .15s; }
+.sp-inputs input:focus { border-color: var(--accent); background: #fff; }
+.sp-inputs .div { color: var(--muted); font-weight: 700; font-size: .85rem; }
+.sp-pct { font-size: .73rem; font-weight: 700; min-width: 30px; text-align: center; color: var(--muted); }
+
+.pp-check {
+  appearance: none; -webkit-appearance: none; width: 21px; height: 21px;
+  border-radius: 6px; border: 2px solid var(--border); cursor: pointer;
+  position: relative; transition: background .2s, border-color .2s; display: inline-block; vertical-align: middle;
+}
+.pp-check:checked { background: #15803d; border-color: #15803d; }
+.pp-check:not(:checked) { background: #fee2e2; border-color: #fca5a5; }
+.pp-check::after { content: ''; display: none; position: absolute; top: 3px; left: 6px; width: 5px; height: 9px; border: 2px solid white; border-top: none; border-left: none; transform: rotate(45deg); }
+.pp-check:checked::after { display: block; }
+.pp-check:not(:checked)::before { content: '✕'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 9px; color: #b91c1c; font-weight: 700; }
+
+.feed-tag { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: .7rem; font-weight: 500; background: #f1f0ec; color: var(--muted); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.del-btn { background: none; border: none; cursor: pointer; color: #d1d5db; font-size: .95rem; padding: 2px 6px; border-radius: 4px; transition: color .15s; }
+.del-btn:hover { color: #dc2626; }
+
+.empty { padding: 60px 24px; text-align: center; }
+.empty h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; margin-bottom: 8px; }
+.empty p { font-size: .82rem; color: var(--muted); margin-bottom: 16px; }
+
+#dropOverlay { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(37,99,235,.07); border: 3px dashed var(--accent); border-radius: 16px; margin: 10px; align-items: center; justify-content: center; flex-direction: column; gap: 10px; pointer-events: none; }
+#dropOverlay.active { display: flex; }
+#dropOverlay span { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--accent); }
+
+#toast { position: fixed; bottom: 22px; right: 22px; background: #1a1814; color: #fff; padding: 9px 16px; border-radius: 9px; font-size: .8rem; font-weight: 500; pointer-events: none; opacity: 0; transform: translateY(6px); transition: opacity .2s, transform .2s; z-index: 200; }
+#toast.show { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="subject-label">Grade Tracker</div>
+      <div class="subject-name" id="subjectName">No data</div>
+    </div>
+    <div class="header-pills" id="summaryPills"></div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <button class="btn primary" onclick="document.getElementById('fileInput').click()">
+    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    Import .txt
+  </button>
+  <button class="btn" onclick="toggleHint()">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    File Format
+  </button>
+  <button class="btn" onclick="dlTemplate()">
+    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Download Template
+  </button>
+  <button class="btn" onclick="addRow()">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Add Row
+  </button>
+  <button class="btn" onclick="exportTxt()">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Export .txt
+  </button>
+  <input type="file" id="fileInput" accept=".txt,.csv" style="display:none" onchange="handleFile(event)">
+</div>
+
+<div class="format-hint" id="fmtHint">
+  <strong>📄 .txt file format — one topic per line, comma-separated</strong>
+  Columns: <code>Topic, SparxCode, MaxMark, YourMark, Feedback</code><br>
+  Multiple Sparx codes: use <code>R914|R746</code> &nbsp;·&nbsp; Leave blank with a comma &nbsp;·&nbsp; Lines starting with <code>//</code> are comments
+  <div class="example">SUBJECT: Biology
+// Topic, SparxCode, MaxMark, YourMark, Feedback
+Viral Diseases, R366, 4, 3, Knew but could not remember
+Vaccination, R938, 2, 0, Did not know
+Non Communicable Disease, R505, 1, 1,
+Plant Diseases, R914|R746, 5, 4, Knew but could not remember
+Maths, , 3, 3,</div>
+</div>
+
+<div class="legend">
+  <div class="leg"><div class="leg-dot" style="background:#f87171"></div>Below 50%</div>
+  <div class="leg"><div class="leg-dot" style="background:#fbbf24"></div>50–74%</div>
+  <div class="leg"><div class="leg-dot" style="background:#4ade80"></div>75–89%</div>
+  <div class="leg"><div class="leg-dot" style="background:#34d399"></div>90–100%</div>
+  <div style="margin-left:auto;font-size:.72rem;color:var(--muted)">Click Sparx code → copies &amp; opens Sparx &nbsp;·&nbsp; Sparx Practice blends into score %</div>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Topic</th>
+        <th>Sparx Code</th>
+        <th class="c">Max</th>
+        <th class="c">Score</th>
+        <th class="c">%</th>
+        <th class="c">Sparx Practice<br><span style="font-weight:400;opacity:.55;font-size:.61rem">correct / total</span></th>
+        <th>Feedback</th>
+        <th class="c">Practice<br>Paper</th>
+        <th class="c" style="width:32px"></th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="9">
+        <div class="empty">
+          <h3>No data yet</h3>
+          <p>Import a .txt file or click "Add Row" to get started.</p>
+          <button class="btn primary" onclick="document.getElementById('fileInput').click()" style="margin:0 auto">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import .txt
+          </button>
+        </div>
+      </td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div id="dropOverlay"><span>📄 Drop .txt file to import</span></div>
+<div id="toast"></div>
+
+<script>
+let rows = [], subject = '';
+const KEY = 'gt3';
+try { const s = JSON.parse(localStorage.getItem(KEY)||'null'); if(s){rows=s.rows||[];subject=s.subject||'';} } catch(e){}
+
+function save() { try { localStorage.setItem(KEY, JSON.stringify({rows, subject})); } catch(e){} }
+
+function colorOf(pct) {
+  if (pct===null) return {row:'#f8f7f3',bar:'#d1d5db',text:'#9ca3af',bd:'#e5e7eb',bg:'#f8f7f3'};
+  if (pct>=.90) return {row:'#d1fae5',bar:'#34d399',text:'#065f46',bd:'#6ee7b7',bg:'#ecfdf5'};
+  if (pct>=.75) return {row:'#dcfce7',bar:'#4ade80',text:'#166534',bd:'#86efac',bg:'#f0fdf4'};
+  if (pct>=.50) return {row:'#fef3c7',bar:'#fbbf24',text:'#92400e',bd:'#fde68a',bg:'#fffbeb'};
+  return {row:'#fde8e8',bar:'#f87171',text:'#b91c1c',bd:'#fca5a5',bg:'#fff1f1'};
+}
+
+function effectivePct(r) {
+  const exam = r.maxMark>0 ? r.yourMark/r.maxMark : null;
+  const sc=parseFloat(r.spCorrect), st=parseFloat(r.spTotal);
+  const sparx=(!isNaN(sc)&&!isNaN(st)&&st>0) ? sc/st : null;
+  if(exam!==null&&sparx!==null) return (exam+sparx)/2;
+  return exam;
+}
+
+function pctBar(pct, c) {
+  if(pct===null) return '<span style="color:#d1d5db">—</span>';
+  const p=Math.round(pct*100);
+  return `<div class="pct-wrap"><div class="pct-bar"><div class="pct-fill" style="width:${p}%;background:${c.bar}"></div></div><span class="pct-lbl" style="color:${c.text}">${p}%</span></div>`;
+}
+
+function spPctHtml(r) {
+  const sc=parseFloat(r.spCorrect),st=parseFloat(r.spTotal);
+  if(!isNaN(sc)&&!isNaN(st)&&st>0){
+    const p=Math.round(sc/st*100);
+    return `<span style="color:${colorOf(sc/st).text}">${p}%</span>`;
+  }
+  return '—';
+}
+
+function render() {
+  document.getElementById('subjectName').textContent = subject || 'Grade Tracker';
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty"><h3>No data yet</h3><p>Import a .txt file or click "Add Row" to get started.</p><button class="btn primary" onclick="document.getElementById('fileInput').click()" style="margin:0 auto"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import .txt</button></div></td></tr>`;
+    updateSummary(); return;
+  }
+
+  rows.forEach((r,i) => {
+    const pct=effectivePct(r), c=colorOf(pct);
+    const codes = r.codes||[];
+    const sparxHtml = codes.length
+      ? codes.map(code=>`<span class="sparx-chip" id="chip-${i}-${code.replace(/\W/g,'')}" onclick="copySparx('${code}','chip-${i}-${code.replace(/\W/g,'')}')">${code}<span class="ico">⎘</span></span>`).join('')
+      : '<span style="color:#d1d5db;font-size:.75rem">—</span>';
+
+    const tr = document.createElement('tr');
+    tr.className = 'data-row'; tr.id = 'row-'+i;
+    tr.innerHTML = `
+      <td style="background:${c.row};font-weight:500" id="topic-td-${i}">${escHtml(r.topic)}</td>
+      <td style="background:${c.row}">${sparxHtml}</td>
+      <td class="c" style="background:${c.row}">${r.maxMark}</td>
+      <td class="c" style="background:${c.row};font-weight:700;color:${c.text}">${r.yourMark}</td>
+      <td class="c" style="background:${c.row}" id="pct-td-${i}">${pctBar(pct,c)}</td>
+      <td class="c" style="background:${c.row}">
+        <div class="sp-inputs">
+          <input id="sc-${i}" type="number" min="0" placeholder="✓" value="${r.spCorrect||''}" oninput="onSp(${i})">
+          <span class="div">/</span>
+          <input id="st-${i}" type="number" min="0" placeholder="n" value="${r.spTotal||''}" oninput="onSp(${i})">
+          <span class="sp-pct" id="sp-pct-${i}">${spPctHtml(r)}</span>
+        </div>
+      </td>
+      <td style="background:${c.row}">${r.feedback?`<span class="feed-tag" title="${escHtml(r.feedback)}">${escHtml(r.feedback)}</span>`:'<span style="color:#d1d5db;font-size:.75rem">—</span>'}</td>
+      <td class="c" id="pp-cell-${i}" style="background:${r.practicePaper?'#dcfce7':'#fee2e2'}">
+        <input type="checkbox" class="pp-check" id="pp-${i}" ${r.practicePaper?'checked':''} onchange="onPP(${i})">
+      </td>
+      <td class="c" style="background:${c.row}"><button class="del-btn" onclick="delRow(${i})" title="Delete">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Total
+  const totMax=rows.reduce((s,r)=>s+(parseInt(r.maxMark)||0),0);
+  const totScore=rows.reduce((s,r)=>s+(parseInt(r.yourMark)||0),0);
+  const totPct=totMax>0?totScore/totMax:null, tc=colorOf(totPct);
+  const ttr=document.createElement('tr'); ttr.className='total-row';
+  ttr.innerHTML=`<td>Total</td><td></td><td class="c">${totMax}</td><td class="c" style="color:${tc.text}">${totScore}</td><td class="c">${pctBar(totPct,tc)}</td><td></td><td></td><td></td><td></td>`;
+  tbody.appendChild(ttr);
+  updateSummary();
+}
+
+function updateSummary() {
+  let totMax=0,totScore=0,cr=0,ca=0,cg=0,ce=0;
+  rows.forEach(r => {
+    totMax+=parseInt(r.maxMark)||0; totScore+=parseInt(r.yourMark)||0;
+    const p=effectivePct(r);
+    if(p===null){}else if(p>=.90)ce++;else if(p>=.75)cg++;else if(p>=.50)ca++;else cr++;
+  });
+  const p=totMax>0?totScore/totMax:null, c=colorOf(p);
+  document.getElementById('summaryPills').innerHTML = rows.length ? `
+    <div class="pill" style="background:${c.bg};color:${c.text};border-color:${c.bd}">Overall ${p!==null?Math.round(p*100)+'%':'—'} (${totScore}/${totMax})</div>
+    ${cr?`<div class="pill" style="background:#fff1f1;color:#b91c1c;border-color:#fca5a5">🔴 ${cr}</div>`:''}
+    ${ca?`<div class="pill" style="background:#fffbeb;color:#92400e;border-color:#fde68a">🟠 ${ca}</div>`:''}
+    ${cg?`<div class="pill" style="background:#f0fdf4;color:#166534;border-color:#86efac">🟢 ${cg}</div>`:''}
+    ${ce?`<div class="pill" style="background:#ecfdf5;color:#065f46;border-color:#6ee7b7">💚 ${ce}</div>`:''}
+  ` : '';
+}
+
+function onSp(i) {
+  rows[i].spCorrect=document.getElementById('sc-'+i)?.value||'';
+  rows[i].spTotal=document.getElementById('st-'+i)?.value||'';
+  const pct=effectivePct(rows[i]),c=colorOf(pct);
+  const tr=document.getElementById('row-'+i);
+  if(tr){
+    Array.from(tr.cells).forEach((td,ci)=>{ if(ci!==7) td.style.background=c.row; });
+    document.getElementById('pct-td-'+i).innerHTML=pctBar(pct,c);
+    document.getElementById('sp-pct-'+i).innerHTML=spPctHtml(rows[i]);
+    tr.cells[3].style.color=c.text;
+  }
+  updateSummary(); save();
+}
+
+function onPP(i) {
+  rows[i].practicePaper=document.getElementById('pp-'+i).checked;
+  const cell=document.getElementById('pp-cell-'+i);
+  if(cell) cell.style.background=rows[i].practicePaper?'#dcfce7':'#fee2e2';
+  save();
+}
+
+function delRow(i) { rows.splice(i,1); render(); save(); }
+
+function addRow() {
+  rows.push({topic:'New Topic',codes:[],maxMark:0,yourMark:0,feedback:'',spCorrect:'',spTotal:'',practicePaper:false});
+  render(); save();
+  const i=rows.length-1;
+  const td=document.getElementById('topic-td-'+i);
+  if(td){ td.contentEditable=true; td.style.outline='2px solid var(--accent)'; td.focus();
+    td.onblur=()=>{ rows[i].topic=td.textContent.trim()||'New Topic'; td.contentEditable=false; td.style.outline=''; save(); };
+  }
+}
+
+let toastT;
+function toast(msg) {
+  const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),1900);
+}
+
+function copySparx(code,chipId) {
+  navigator.clipboard.writeText(code).then(()=>{
+    const chip=document.getElementById(chipId);
+    if(chip){chip.classList.add('copied');setTimeout(()=>chip.classList.remove('copied'),1100);}
+    toast('Copied '+code+' — opening Sparx…');
+    window.open('https://sparxscience.com/','_blank');
+  });
+}
+
+function handleFile(e) {
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>parseTxt(ev.target.result);
+  reader.readAsText(file); e.target.value='';
+}
+
+function parseTxt(text) {
+  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+  let newSubject=subject; const newRows=[];
+  lines.forEach(line=>{
+    if(line.startsWith('//')||line.startsWith('#')) return;
+    if(line.toUpperCase().startsWith('SUBJECT:')){newSubject=line.slice(8).trim();return;}
+    const parts=line.split(',');
+    if(parts.length<4) return;
+    const [topicRaw,codesRaw,maxRaw,scoreRaw,...feedParts]=parts;
+    const topic=topicRaw.trim(); if(!topic) return;
+    const codes=codesRaw.trim()?codesRaw.trim().split('|').map(c=>c.trim()).filter(Boolean):[];
+    newRows.push({topic,codes,maxMark:parseInt(maxRaw)||0,yourMark:parseInt(scoreRaw)||0,feedback:feedParts.join(',').trim(),spCorrect:'',spTotal:'',practicePaper:false});
+  });
+  if(!newRows.length){toast('⚠️ No valid rows found');return;}
+  subject=newSubject||'Subject'; rows=newRows; render(); save();
+  toast(`✓ Imported ${newRows.length} topics`);
+}
+
+function exportTxt() {
+  if(!rows.length){toast('Nothing to export');return;}
+  let out=`SUBJECT: ${subject}\n// Topic, SparxCode (use | for multiple), MaxMark, YourMark, Feedback\n`;
+  rows.forEach(r=>{ out+=`${r.topic}, ${(r.codes||[]).join('|')}, ${r.maxMark}, ${r.yourMark}, ${r.feedback||''}\n`; });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([out],{type:'text/plain'}));
+  a.download=`${(subject||'grades').replace(/\s+/g,'_')}_grades.txt`; a.click();
+  toast('Exported!');
+}
+
+function dlTemplate() {
+  const txt=`SUBJECT: Biology
+// Topic, SparxCode (use | for multiple), MaxMark, YourMark, Feedback
+// Leave SparxCode or Feedback blank with a comma. Lines starting with // are ignored.
+Viral Diseases, R366, 4, 3, Knew but could not remember
+Vaccination, R938, 2, 0, Did not know
+Non Communicable Disease, R505, 1, 1,
+Plant Diseases, R914|R746, 5, 4, Knew but could not remember
+Maths, , 3, 3,
+`;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
+  a.download='grades_template.txt'; a.click(); toast('Template downloaded!');
+}
+
+function toggleHint() {
+  const h=document.getElementById('fmtHint');
+  h.style.display=h.style.display==='block'?'none':'block';
+}
+
+function escHtml(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Drag & drop
+document.addEventListener('dragover',e=>{e.preventDefault();document.getElementById('dropOverlay').classList.add('active');});
+document.addEventListener('dragleave',e=>{if(!e.relatedTarget)document.getElementById('dropOverlay').classList.remove('active');});
+document.addEventListener('drop',e=>{
+  e.preventDefault(); document.getElementById('dropOverlay').classList.remove('active');
+  const file=e.dataTransfer.files[0];
+  if(file&&(file.name.endsWith('.txt')||file.name.endsWith('.csv'))){
+    const r=new FileReader(); r.onload=ev=>parseTxt(ev.target.result); r.readAsText(file);
+  } else { toast('Please drop a .txt file'); }
+});
+
+render();
+</script>
+</body>
+</html>
