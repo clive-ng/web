@@ -4,426 +4,1012 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Grade Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@100..900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --bg: #f6f5f1; --card: #ffffff; --border: #e3e0d7;
-  --text: #1a1814; --muted: #8c8880; --accent: #2563eb;
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg-1:#c8dff7;
+  --bg-2:#d6e9fb;
+  --glass:#ffffffcc;
+  --glass2:#ffffffa0;
+  --glass3:#ffffff70;
+  --glass-border:#ffffff90;
+  --glass-border2:#ffffffb0;
+  --blur:20px;
+  --text:#0a1628;
+  --text2:#3a5070;
+  --text3:#6a8aaa;
+  --accent:#1a6fd4;
+  --accent2:#2280f0;
+  --sidebar-w:228px;
+  --radius:16px;
+  --radius2:12px;
+  --shadow:0 8px 32px rgba(10,40,100,.13),0 1.5px 4px rgba(10,40,100,.08);
+  --shadow2:0 2px 12px rgba(10,40,100,.10);
 }
-body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 40px 28px 80px; }
-
-.header { margin-bottom: 28px; }
-.header-top { display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
-.subject-label { font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
-.subject-name { font-family: 'Syne', sans-serif; font-size: 2.1rem; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
-.header-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; align-items: center; }
-.pill { padding: 5px 13px; border-radius: 999px; font-size: .75rem; font-weight: 600; border: 1.5px solid; white-space: nowrap; }
-
-.toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-.btn {
-  display: inline-flex; align-items: center; gap: 6px; padding: 8px 15px;
-  border-radius: 9px; font-family: 'DM Sans', sans-serif; font-size: .8rem; font-weight: 600;
-  cursor: pointer; border: 1.5px solid var(--border); background: var(--card); color: var(--text);
-  transition: background .15s, transform .1s; white-space: nowrap;
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:'Google Sans Flex',system-ui,sans-serif;
+  background:linear-gradient(135deg,#b8d4f5 0%,#cce3fb 40%,#bcd8f8 70%,#d0e8ff 100%);
+  color:var(--text);
+  display:flex;
+  min-height:100vh;
 }
-.btn:hover { background: #eeece6; }
-.btn:active { transform: scale(.97); }
-.btn.primary { background: var(--text); color: #fff; border-color: var(--text); }
-.btn.primary:hover { background: #2e2b25; }
-.btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-
-.format-hint {
-  background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
-  padding: 14px 18px; margin-bottom: 14px; font-size: .8rem; line-height: 1.7; display: none;
+/* bg noise texture for depth */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity:.4;
 }
-.format-hint strong { display: block; margin-bottom: 4px; font-weight: 600; }
-.format-hint code { background: #fef3c7; padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: .77rem; }
-.format-hint .example { margin-top: 8px; background: #fefce8; border-radius: 6px; padding: 8px 12px; font-family: monospace; font-size: .74rem; line-height: 1.9; color: #78350f; white-space: pre; }
 
-.legend {
-  display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
-  padding: 10px 16px; background: var(--card); border: 1px solid var(--border);
-  border-radius: 10px; margin-bottom: 14px;
+/* ── LIQUID GLASS MIXIN ── */
+.glass{
+  background:var(--glass);
+  backdrop-filter:blur(var(--blur)) saturate(1.6);
+  -webkit-backdrop-filter:blur(var(--blur)) saturate(1.6);
+  border:1px solid var(--glass-border);
+  box-shadow:var(--shadow);
 }
-.leg { display: flex; align-items: center; gap: 6px; font-size: .72rem; font-weight: 500; color: var(--muted); }
-.leg-dot { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
-
-.table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; overflow-x: auto; box-shadow: 0 1px 4px rgba(0,0,0,.04); }
-table { width: 100%; border-collapse: collapse; min-width: 960px; }
-thead th { background: #1a1814; color: rgba(255,255,255,.88); font-size: .67rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; padding: 12px 13px; text-align: left; white-space: nowrap; }
-thead th.c { text-align: center; }
-tbody tr.data-row:hover td { filter: brightness(.97); }
-td { padding: 9px 13px; border-bottom: 1px solid var(--border); font-size: .845rem; vertical-align: middle; transition: background .25s; }
-tbody tr:last-child td { border-bottom: none; }
-td.c { text-align: center; }
-tr.total-row td { border-top: 2px solid var(--border); background: #f8f7f3 !important; font-weight: 700; font-size: .875rem; }
-
-.sparx-chip {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;
-  padding: 3px 9px; font-family: monospace; font-size: .78rem; font-weight: 700;
-  color: #1d4ed8; cursor: pointer; transition: background .15s, transform .1s;
-  user-select: none; margin: 1px 2px 1px 0;
+.glass2{
+  background:var(--glass2);
+  backdrop-filter:blur(12px) saturate(1.4);
+  -webkit-backdrop-filter:blur(12px) saturate(1.4);
+  border:1px solid var(--glass-border2);
+  box-shadow:var(--shadow2);
 }
-.sparx-chip:hover { background: #dbeafe; transform: scale(1.04); }
-.sparx-chip.copied { background: #dcfce7; border-color: #86efac; color: #15803d; }
-.sparx-chip .ico { font-size: .7rem; opacity: .5; }
 
-.pct-wrap { display: flex; align-items: center; gap: 7px; justify-content: center; }
-.pct-bar { width: 56px; height: 6px; border-radius: 999px; background: #e8e4dc; overflow: hidden; }
-.pct-fill { height: 100%; border-radius: 999px; transition: width .4s ease; }
-.pct-lbl { font-size: .77rem; font-weight: 700; min-width: 32px; text-align: right; }
-
-.sp-inputs { display: flex; align-items: center; gap: 3px; justify-content: center; }
-.sp-inputs input { width: 40px; padding: 4px 5px; border: 1.5px solid var(--border); border-radius: 6px; font-size: .78rem; font-family: inherit; text-align: center; background: #fafaf8; outline: none; transition: border-color .15s; }
-.sp-inputs input:focus { border-color: var(--accent); background: #fff; }
-.sp-inputs .div { color: var(--muted); font-weight: 700; font-size: .85rem; }
-.sp-pct { font-size: .73rem; font-weight: 700; min-width: 30px; text-align: center; color: var(--muted); }
-
-.pp-check {
-  appearance: none; -webkit-appearance: none; width: 21px; height: 21px;
-  border-radius: 6px; border: 2px solid var(--border); cursor: pointer;
-  position: relative; transition: background .2s, border-color .2s; display: inline-block; vertical-align: middle;
+/* ── SIDEBAR ── */
+aside{
+  position:relative;z-index:10;
+  width:var(--sidebar-w);flex-shrink:0;
+  background:rgba(255,255,255,.55);
+  backdrop-filter:blur(28px) saturate(1.8);
+  -webkit-backdrop-filter:blur(28px) saturate(1.8);
+  border-right:1px solid rgba(255,255,255,.7);
+  box-shadow:4px 0 24px rgba(10,40,100,.08);
+  display:flex;flex-direction:column;height:100vh;overflow:hidden;
 }
-.pp-check:checked { background: #15803d; border-color: #15803d; }
-.pp-check:not(:checked) { background: #fee2e2; border-color: #fca5a5; }
-.pp-check::after { content: ''; display: none; position: absolute; top: 3px; left: 6px; width: 5px; height: 9px; border: 2px solid white; border-top: none; border-left: none; transform: rotate(45deg); }
-.pp-check:checked::after { display: block; }
-.pp-check:not(:checked)::before { content: '✕'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 9px; color: #b91c1c; font-weight: 700; }
+.sidebar-top{
+  padding:22px 16px 16px;
+  border-bottom:1px solid rgba(255,255,255,.6);
+}
+.app-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:linear-gradient(135deg,#1a6fd4,#2ea5ff);
+  color:#fff;font-size:.62rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;padding:3px 9px;border-radius:999px;margin-bottom:8px;
+}
+.app-title{font-size:1.05rem;font-weight:700;color:var(--text);letter-spacing:-.02em;}
 
-.feed-tag { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: .7rem; font-weight: 500; background: #f1f0ec; color: var(--muted); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.del-btn { background: none; border: none; cursor: pointer; color: #d1d5db; font-size: .95rem; padding: 2px 6px; border-radius: 4px; transition: color .15s; }
-.del-btn:hover { color: #dc2626; }
+.subjects-label{
+  padding:12px 16px 5px;
+  font-size:.59rem;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--text3);
+}
 
-.empty { padding: 60px 24px; text-align: center; }
-.empty h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; margin-bottom: 8px; }
-.empty p { font-size: .82rem; color: var(--muted); margin-bottom: 16px; }
+.subject-list{flex:1;overflow-y:auto;padding:4px 8px 4px;scroll-behavior:smooth;}
+.subject-list::-webkit-scrollbar{width:3px;}
+.subject-list::-webkit-scrollbar-thumb{background:rgba(26,111,212,.2);border-radius:999px;}
 
-#dropOverlay { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(37,99,235,.07); border: 3px dashed var(--accent); border-radius: 16px; margin: 10px; align-items: center; justify-content: center; flex-direction: column; gap: 10px; pointer-events: none; }
-#dropOverlay.active { display: flex; }
-#dropOverlay span { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--accent); }
+.subj-btn{
+  width:100%;display:flex;align-items:center;gap:8px;padding:9px 10px;
+  border-radius:10px;border:none;
+  background:transparent;
+  color:var(--text2);font-family:'Google Sans Flex',sans-serif;font-size:.81rem;font-weight:500;
+  cursor:pointer;transition:background .15s,color .15s,box-shadow .15s;
+  text-align:left;position:relative;margin-bottom:2px;
+}
+.subj-btn:hover{background:rgba(255,255,255,.55);}
+.subj-btn.active{
+  background:linear-gradient(135deg,rgba(26,111,212,.18),rgba(46,165,255,.12));
+  color:var(--accent);font-weight:600;
+  box-shadow:0 2px 10px rgba(26,111,212,.15),inset 0 1px 0 rgba(255,255,255,.8);
+  border:1px solid rgba(26,111,212,.2);
+}
+.subj-score{
+  margin-left:auto;font-size:.66rem;font-weight:700;
+  padding:2px 7px;border-radius:999px;flex-shrink:0;
+  background:rgba(26,111,212,.1);color:var(--accent);
+}
+.subj-btn.active .subj-score{background:rgba(26,111,212,.15);}
+.subj-del{
+  display:none;position:absolute;right:5px;top:50%;transform:translateY(-50%);
+  background:rgba(220,50,50,.12);border:none;border-radius:5px;
+  color:#cc4444;font-size:.65rem;padding:2px 5px;cursor:pointer;transition:background .12s;
+}
+.subj-btn:hover .subj-del{display:block;}
+.subj-del:hover{background:rgba(220,50,50,.22);}
 
-#toast { position: fixed; bottom: 22px; right: 22px; background: #1a1814; color: #fff; padding: 9px 16px; border-radius: 9px; font-size: .8rem; font-weight: 500; pointer-events: none; opacity: 0; transform: translateY(6px); transition: opacity .2s, transform .2s; z-index: 200; }
-#toast.show { opacity: 1; transform: translateY(0); }
+.add-subj-btn{
+  display:flex;align-items:center;gap:7px;padding:9px 10px;margin:2px 8px 0;
+  border-radius:10px;border:1.5px dashed rgba(26,111,212,.3);
+  background:rgba(26,111,212,.04);color:var(--text3);
+  font-family:'Google Sans Flex',sans-serif;font-size:.79rem;font-weight:500;
+  cursor:pointer;transition:border-color .15s,color .15s,background .15s;width:calc(100% - 16px);
+}
+.add-subj-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(26,111,212,.07);}
+
+.sidebar-bottom{
+  padding:10px 8px;
+  border-top:1px solid rgba(255,255,255,.6);
+  display:flex;flex-direction:column;gap:4px;
+}
+.side-btn{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;
+  border:none;background:transparent;color:var(--text3);
+  font-family:'Google Sans Flex',sans-serif;font-size:.77rem;font-weight:500;
+  cursor:pointer;transition:background .12s,color .12s;width:100%;text-align:left;
+}
+.side-btn:hover{background:rgba(255,255,255,.55);color:var(--accent);}
+.side-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+
+/* ── MAIN ── */
+main{position:relative;z-index:5;flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;min-width:0;}
+
+/* TOPBAR */
+.topbar{
+  padding:0 24px;height:58px;display:flex;align-items:center;gap:12px;flex-shrink:0;
+  background:rgba(255,255,255,.5);
+  backdrop-filter:blur(20px) saturate(1.6);
+  -webkit-backdrop-filter:blur(20px) saturate(1.6);
+  border-bottom:1px solid rgba(255,255,255,.65);
+  box-shadow:0 1px 0 rgba(255,255,255,.8),0 4px 16px rgba(10,40,100,.06);
+}
+.topbar-title{
+  font-size:1.1rem;font-weight:700;letter-spacing:-.02em;color:var(--text);
+  outline:none;cursor:text;padding:3px 8px;border-radius:8px;
+  transition:background .12s;min-width:40px;
+}
+.topbar-title:hover{background:rgba(255,255,255,.6);}
+.topbar-title:focus{background:rgba(255,255,255,.8);box-shadow:0 0 0 2px rgba(26,111,212,.3);}
+.topbar-pills{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.pill{
+  padding:3px 10px;border-radius:999px;font-size:.69rem;font-weight:700;
+  border:1px solid;white-space:nowrap;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.date-chip{
+  display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;
+  font-size:.69rem;font-weight:600;color:var(--text2);
+  background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.8);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.date-chip .dot{width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+.topbar-actions{margin-left:auto;display:flex;gap:8px;align-items:center;}
+
+/* GLASS BUTTON */
+.gbtn{
+  display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;
+  font-family:'Google Sans Flex',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;
+  background:rgba(255,255,255,.65);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.85);color:var(--text2);
+  box-shadow:0 2px 8px rgba(10,40,100,.08),inset 0 1px 0 rgba(255,255,255,.9);
+  transition:background .15s,box-shadow .15s,transform .08s;white-space:nowrap;
+}
+.gbtn:hover{background:rgba(255,255,255,.85);box-shadow:0 4px 16px rgba(10,40,100,.12),inset 0 1px 0 rgba(255,255,255,1);}
+.gbtn:active{transform:scale(.97);}
+.gbtn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.save-dot{width:6px;height:6px;border-radius:50%;background:#34d399;flex-shrink:0;box-shadow:0 0 6px rgba(52,211,153,.5);}
+.save-dot.saving{background:#fbbf24;animation:savepulse .5s infinite;box-shadow:0 0 6px rgba(251,191,36,.5);}
+@keyframes savepulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* TABLE AREA */
+.table-area{flex:1;overflow:auto;padding:20px 24px 48px;}
+.table-area::-webkit-scrollbar{width:5px;height:5px;}
+.table-area::-webkit-scrollbar-thumb{background:rgba(26,111,212,.18);border-radius:999px;}
+
+/* LEGEND */
+.legend{
+  display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;
+  padding:9px 16px;
+  background:rgba(255,255,255,.5);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.75);border-radius:12px;
+  box-shadow:0 2px 8px rgba(10,40,100,.06);
+}
+.leg{display:flex;align-items:center;gap:5px;font-size:.69rem;font-weight:500;color:var(--text3);}
+.leg-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
+
+/* TABLE WRAPPER - main glass card */
+.tbl-wrap{
+  background:#ffffff;
+  backdrop-filter:blur(20px) saturate(1.5);
+  -webkit-backdrop-filter:blur(20px) saturate(1.5);
+  border:1px solid rgba(255,255,255,.8);
+  border-radius:var(--radius);
+  overflow:hidden;overflow-x:auto;
+  box-shadow:0 8px 32px rgba(10,40,100,.10),inset 0 1px 0 rgba(255,255,255,.9);
+}
+table{width:100%;border-collapse:collapse;min-width:940px;}
+thead th{
+  background:#1e3a5f;color:rgba(255,255,255,.92);font-size:.62rem;font-weight:700;
+  letter-spacing:.09em;text-transform:uppercase;
+  padding:11px 13px;text-align:left;white-space:nowrap;
+  border-bottom:1px solid #163050;
+}
+thead th.c{text-align:center;}
+td{padding:0;border-bottom:1px solid #e8f0fb;vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr.data-row{transition:background .12s;}
+tbody tr.data-row:hover td{filter:brightness(.96);}
+
+/* EDITABLE CELLS */
+.cell{
+  padding:8px 13px;font-size:.83rem;display:flex;align-items:center;
+  min-height:38px;cursor:text;outline:none;
+  background:inherit;
+  transition:box-shadow .12s;
+}
+.cell.center{justify-content:center;}
+.cell.num{font-feature-settings:"tnum";font-variant-numeric:tabular-nums;font-weight:600;}
+.cell[contenteditable=true]{
+  box-shadow:inset 0 0 0 2px rgba(26,111,212,.5);
+  background:rgba(255,255,255,.8)!important;
+  border-radius:4px;cursor:text;
+}
+
+/* PCT BAR */
+.pct-wrap{display:flex;align-items:center;gap:8px;justify-content:center;padding:8px 13px;}
+.pct-bar{width:52px;height:5px;border-radius:999px;background:rgba(26,111,212,.12);overflow:hidden;flex-shrink:0;}
+.pct-fill{height:100%;border-radius:999px;transition:width .4s ease;}
+.pct-lbl{font-size:.75rem;font-weight:700;min-width:32px;text-align:right;font-variant-numeric:tabular-nums;}
+
+/* SPARX CHIP */
+.sparx-chip{
+  display:inline-flex;align-items:center;gap:4px;
+  background:rgba(26,111,212,.1);
+  border:1px solid rgba(26,111,212,.25);
+  border-radius:6px;padding:3px 9px;
+  font-family:ui-monospace,monospace;font-size:.75rem;font-weight:600;
+  color:var(--accent);cursor:pointer;
+  transition:background .12s,transform .1s,box-shadow .12s;
+  user-select:none;margin:1px 2px;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+.sparx-chip:hover{
+  background:rgba(26,111,212,.18);transform:scale(1.05);
+  box-shadow:0 2px 8px rgba(26,111,212,.2);
+}
+.sparx-chip.copied{
+  background:rgba(52,211,153,.15);border-color:rgba(52,211,153,.4);color:#059669;
+}
+.sparx-chip .ico{font-size:.62rem;opacity:.5;}
+
+/* SPARX PRACTICE INPUTS */
+.sp-cell{display:flex;align-items:center;gap:3px;justify-content:center;padding:6px 10px;}
+.sp-cell input{
+  width:37px;padding:4px 4px;
+  border:1.5px solid rgba(26,111,212,.2);border-radius:6px;
+  font-size:.76rem;font-variant-numeric:tabular-nums;text-align:center;
+  background:rgba(255,255,255,.6);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  color:var(--text);outline:none;transition:border-color .12s,background .12s;
+  -moz-appearance:textfield;
+}
+.sp-cell input::-webkit-outer-spin-button,.sp-cell input::-webkit-inner-spin-button{-webkit-appearance:none;}
+.sp-cell input:focus{border-color:var(--accent);background:rgba(255,255,255,.9);}
+.sp-div{color:var(--text3);font-weight:700;font-size:.8rem;}
+.sp-pct{font-size:.7rem;font-weight:700;min-width:28px;text-align:center;color:var(--text3);}
+
+/* PRACTICE PAPER CHECKBOX */
+.pp-wrap{display:flex;justify-content:center;padding:6px;}
+.pp-check{
+  appearance:none;-webkit-appearance:none;width:21px;height:21px;border-radius:6px;
+  border:1.5px solid rgba(26,111,212,.25);cursor:pointer;position:relative;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  transition:background .15s,border-color .15s,box-shadow .15s;
+}
+.pp-check:checked{
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  border-color:#16a34a;
+  box-shadow:0 2px 8px rgba(34,197,94,.3);
+}
+.pp-check:not(:checked){
+  background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);
+}
+.pp-check::after{content:'';display:none;position:absolute;top:3px;left:6px;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg);}
+.pp-check:checked::after{display:block;}
+.pp-check:not(:checked)::before{content:'✕';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:9px;color:rgba(220,50,50,.7);font-weight:700;}
+
+/* FEEDBACK TAG */
+.feed-tag{
+  display:inline-block;padding:2px 8px;border-radius:5px;font-size:.69rem;font-weight:500;
+  background:rgba(26,111,212,.08);color:var(--text2);
+  border:1px solid rgba(26,111,212,.12);
+  max-width:190px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* DELETE BTN */
+.del-btn{background:none;border:none;cursor:pointer;color:rgba(180,180,200,.5);font-size:.85rem;padding:4px 8px;border-radius:5px;transition:color .12s,background .12s;display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
+.del-btn:hover{color:#ef4444;background:rgba(239,68,68,.08);}
+
+/* TOTAL ROW */
+tr.total-row td{border-top:2px solid #bfdbfe;}
+tr.total-row .cell{background:#eff6ff!important;font-weight:700;font-size:.875rem;}
+tr.total-row td{background:#eff6ff;}
+
+/* ADD ROW BTN */
+.add-row-btn{
+  display:flex;align-items:center;gap:8px;padding:10px 14px;margin-top:10px;
+  background:rgba(255,255,255,.45);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1.5px dashed rgba(26,111,212,.25);border-radius:11px;
+  color:var(--text3);font-family:'Google Sans Flex',sans-serif;font-size:.78rem;font-weight:500;
+  cursor:pointer;transition:border-color .15s,color .15s,background .15s;width:100%;
+}
+.add-row-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(255,255,255,.65);}
+
+/* EMPTY STATE */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:65vh;gap:12px;text-align:center;}
+.empty-state .icon{font-size:2.8rem;filter:drop-shadow(0 4px 12px rgba(26,111,212,.2));}
+.empty-state h2{font-size:1.2rem;font-weight:700;color:var(--text);}
+.empty-state p{font-size:.82rem;color:var(--text3);max-width:300px;line-height:1.6;}
+
+/* MODAL - liquid glass */
+.modal-bg{
+  display:none;position:fixed;inset:0;
+  background:rgba(180,210,250,.25);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  z-index:200;align-items:center;justify-content:center;
+}
+.modal-bg.open{display:flex;}
+.modal{
+  background:rgba(255,255,255,.82);
+  backdrop-filter:blur(32px) saturate(1.8);
+  -webkit-backdrop-filter:blur(32px) saturate(1.8);
+  border:1px solid rgba(255,255,255,.9);
+  border-radius:20px;padding:26px;width:370px;max-width:90vw;
+  box-shadow:0 24px 64px rgba(10,40,100,.18),inset 0 1px 0 rgba(255,255,255,1);
+}
+.modal h3{font-size:1rem;font-weight:700;margin-bottom:16px;color:var(--text);}
+.modal input{
+  width:100%;padding:10px 13px;
+  border:1.5px solid rgba(26,111,212,.2);border-radius:10px;
+  background:rgba(255,255,255,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  color:var(--text);font-family:'Google Sans Flex',sans-serif;font-size:.85rem;
+  outline:none;transition:border-color .12s,background .12s;margin-bottom:14px;
+}
+.modal input:focus{border-color:var(--accent);background:rgba(255,255,255,.95);}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;}
+.mbtn{
+  padding:8px 16px;border-radius:9px;font-family:'Google Sans Flex',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;
+  border:1px solid rgba(255,255,255,.8);background:rgba(255,255,255,.6);color:var(--text2);
+  backdrop-filter:blur(8px);transition:background .12s;
+}
+.mbtn:hover{background:rgba(255,255,255,.85);}
+.mbtn.confirm{
+  background:linear-gradient(135deg,#1a6fd4,#2ea5ff);
+  color:#fff;border-color:rgba(46,165,255,.5);
+  box-shadow:0 4px 14px rgba(26,111,212,.3);
+}
+.mbtn.confirm:hover{background:linear-gradient(135deg,#155bb5,#2490e0);}
+
+/* TOAST */
+#toast{
+  position:fixed;bottom:22px;right:22px;z-index:999;
+  background:rgba(255,255,255,.85);
+  backdrop-filter:blur(20px) saturate(1.6);
+  -webkit-backdrop-filter:blur(20px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.9);
+  color:var(--text);padding:10px 18px;border-radius:12px;
+  font-size:.78rem;font-weight:600;pointer-events:none;
+  opacity:0;transform:translateY(8px) scale(.97);
+  transition:opacity .2s,transform .2s;
+  box-shadow:0 8px 24px rgba(10,40,100,.15);
+}
+#toast.show{opacity:1;transform:translateY(0) scale(1);}
+
+/* DROP OVERLAY */
+#dropOverlay{
+  display:none;position:fixed;inset:0;z-index:100;
+  background:rgba(200,223,247,.3);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:3px dashed rgba(26,111,212,.4);border-radius:16px;margin:8px;
+  align-items:center;justify-content:center;pointer-events:none;
+  flex-direction:column;gap:8px;
+}
+#dropOverlay.active{display:flex;}
+#dropOverlay span{font-size:1.1rem;font-weight:700;color:var(--accent);}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-top">
-    <div>
-      <div class="subject-label">Grade Tracker</div>
-      <div class="subject-name" id="subjectName">No data</div>
+<!-- SIDEBAR -->
+<aside>
+  <div class="sidebar-top">
+    <div class="app-badge">
+      <svg style="width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Tracker
     </div>
-    <div class="header-pills" id="summaryPills"></div>
+    <div class="app-title">Grade Tracker</div>
+  </div>
+  <div class="subjects-label">Subjects</div>
+  <div class="subject-list" id="subjectList"></div>
+  <button class="add-subj-btn" onclick="openAddSubject()">
+    <svg style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Add Subject
+  </button>
+  <div class="sidebar-bottom">
+    <button class="side-btn" onclick="document.getElementById('fileInput').click()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Import CSV / Excel
+    </button>
+    <button class="side-btn" onclick="exportCSV()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export All (CSV)
+    </button>
+    <button class="side-btn" onclick="exportXLSX()">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Export All (Excel)
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main>
+  <div class="topbar">
+    <div class="topbar-title" id="topbarTitle" contenteditable="true" spellcheck="false">—</div>
+    <div class="topbar-pills" id="topbarPills"></div>
+    <div class="topbar-actions">
+      <button class="gbtn" onclick="addRow()">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Row
+      </button>
+      <div style="display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--text3);">
+        <div class="save-dot" id="saveDot"></div>
+        <span id="saveLabel">Saved</span>
+      </div>
+    </div>
+  </div>
+  <div class="table-area" id="tableArea">
+    <div class="empty-state">
+      <div class="icon">📊</div>
+      <h2>No subjects yet</h2>
+      <p>Click <strong>Add Subject</strong> in the sidebar, or import a CSV / Excel file.</p>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-bg" id="addSubjectModal">
+  <div class="modal">
+    <h3>Add Subject</h3>
+    <input type="text" id="newSubjectName" placeholder="e.g. Physics" onkeydown="if(event.key==='Enter')confirmAddSubject()">
+    <div class="modal-btns">
+      <button class="mbtn" onclick="closeModal('addSubjectModal')">Cancel</button>
+      <button class="mbtn confirm" onclick="confirmAddSubject()">Add Subject</button>
+    </div>
   </div>
 </div>
 
-<div class="toolbar">
-  <button class="btn primary" onclick="document.getElementById('fileInput').click()">
-    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-    Import .txt
-  </button>
-  <button class="btn" onclick="toggleHint()">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-    File Format
-  </button>
-  <button class="btn" onclick="dlTemplate()">
-    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    Download Template
-  </button>
-  <button class="btn" onclick="addRow()">
-    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    Add Row
-  </button>
-  <button class="btn" onclick="exportTxt()">
-    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-    Export .txt
-  </button>
-  <input type="file" id="fileInput" accept=".txt,.csv" style="display:none" onchange="handleFile(event)">
+<input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.txt" style="display:none" onchange="handleImport(event)">
+<div id="dropOverlay">
+  <span>📂 Drop to import</span>
+  <div style="font-size:.75rem;color:var(--text2);">CSV, Excel, or .txt</div>
 </div>
-
-<div class="format-hint" id="fmtHint">
-  <strong>📄 .txt file format — one topic per line, comma-separated</strong>
-  Columns: <code>Topic, SparxCode, MaxMark, YourMark, Feedback</code><br>
-  Multiple Sparx codes: use <code>R914|R746</code> &nbsp;·&nbsp; Leave blank with a comma &nbsp;·&nbsp; Lines starting with <code>//</code> are comments
-  <div class="example">SUBJECT: Biology
-// Topic, SparxCode, MaxMark, YourMark, Feedback
-Viral Diseases, R366, 4, 3, Knew but could not remember
-Vaccination, R938, 2, 0, Did not know
-Non Communicable Disease, R505, 1, 1,
-Plant Diseases, R914|R746, 5, 4, Knew but could not remember
-Maths, , 3, 3,</div>
-</div>
-
-<div class="legend">
-  <div class="leg"><div class="leg-dot" style="background:#f87171"></div>Below 50%</div>
-  <div class="leg"><div class="leg-dot" style="background:#fbbf24"></div>50–74%</div>
-  <div class="leg"><div class="leg-dot" style="background:#4ade80"></div>75–89%</div>
-  <div class="leg"><div class="leg-dot" style="background:#34d399"></div>90–100%</div>
-  <div style="margin-left:auto;font-size:.72rem;color:var(--muted)">Click Sparx code → copies &amp; opens Sparx &nbsp;·&nbsp; Sparx Practice blends into score %</div>
-</div>
-
-<div class="table-wrap">
-  <table>
-    <thead>
-      <tr>
-        <th>Topic</th>
-        <th>Sparx Code</th>
-        <th class="c">Max</th>
-        <th class="c">Score</th>
-        <th class="c">%</th>
-        <th class="c">Sparx Practice<br><span style="font-weight:400;opacity:.55;font-size:.61rem">correct / total</span></th>
-        <th>Feedback</th>
-        <th class="c">Practice<br>Paper</th>
-        <th class="c" style="width:32px"></th>
-      </tr>
-    </thead>
-    <tbody id="tbody">
-      <tr><td colspan="9">
-        <div class="empty">
-          <h3>No data yet</h3>
-          <p>Import a .txt file or click "Add Row" to get started.</p>
-          <button class="btn primary" onclick="document.getElementById('fileInput').click()" style="margin:0 auto">
-            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Import .txt
-          </button>
-        </div>
-      </td></tr>
-    </tbody>
-  </table>
-</div>
-
-<div id="dropOverlay"><span>📄 Drop .txt file to import</span></div>
 <div id="toast"></div>
 
 <script>
-let rows = [], subject = '';
-const KEY = 'gt3';
-try { const s = JSON.parse(localStorage.getItem(KEY)||'null'); if(s){rows=s.rows||[];subject=s.subject||'';} } catch(e){}
+// ── STATE ─────────────────────────────────────────────────────────────
+const STORE = 'gradeTrackerV6';
+let subjects = {}, activeId = null, saveTimer = null;
+function genId(){ return 's'+Math.random().toString(36).slice(2,9); }
 
-function save() { try { localStorage.setItem(KEY, JSON.stringify({rows, subject})); } catch(e){} }
+try{
+  const s=JSON.parse(localStorage.getItem(STORE)||'null');
+  if(s&&s.subjects&&Object.keys(s.subjects).length){
+    subjects=s.subjects; activeId=s.activeId||Object.keys(s.subjects)[0];
+  }
+}catch(e){}
 
-function colorOf(pct) {
-  if (pct===null) return {row:'#f8f7f3',bar:'#d1d5db',text:'#9ca3af',bd:'#e5e7eb',bg:'#f8f7f3'};
-  if (pct>=.90) return {row:'#d1fae5',bar:'#34d399',text:'#065f46',bd:'#6ee7b7',bg:'#ecfdf5'};
-  if (pct>=.75) return {row:'#dcfce7',bar:'#4ade80',text:'#166534',bd:'#86efac',bg:'#f0fdf4'};
-  if (pct>=.50) return {row:'#fef3c7',bar:'#fbbf24',text:'#92400e',bd:'#fde68a',bg:'#fffbeb'};
-  return {row:'#fde8e8',bar:'#f87171',text:'#b91c1c',bd:'#fca5a5',bg:'#fff1f1'};
+// ── SAVE ──────────────────────────────────────────────────────────────
+function markDirty(){
+  const dot=document.getElementById('saveDot'),lbl=document.getElementById('saveLabel');
+  dot.classList.add('saving');lbl.textContent='Saving…';
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    try{localStorage.setItem(STORE,JSON.stringify({subjects,activeId}));}catch(e){}
+    dot.classList.remove('saving');lbl.textContent='Saved';
+  },500);
 }
 
-function effectivePct(r) {
-  const exam = r.maxMark>0 ? r.yourMark/r.maxMark : null;
-  const sc=parseFloat(r.spCorrect), st=parseFloat(r.spTotal);
-  const sparx=(!isNaN(sc)&&!isNaN(st)&&st>0) ? sc/st : null;
-  if(exam!==null&&sparx!==null) return (exam+sparx)/2;
+// ── DATE HELPERS ──────────────────────────────────────────────────────
+function parseDateDDMMYYYY(str){
+  // Accepts DD/MM/YYYY
+  if(!str)return null;
+  const m=str.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(!m)return null;
+  const [,d,mo,y]=m;
+  const dt=new Date(parseInt(y),parseInt(mo)-1,parseInt(d));
+  if(isNaN(dt.getTime()))return null;
+  return dt;
+}
+function daysAgo(dt){
+  const now=new Date(); now.setHours(0,0,0,0);
+  const diff=Math.round((now-dt)/(1000*60*60*24));
+  return diff;
+}
+function formatExportFilename(){
+  const now=new Date();
+  const dd=String(now.getDate()).padStart(2,'0');
+  const mm=String(now.getMonth()+1).padStart(2,'0');
+  const yy=String(now.getFullYear()).slice(2);
+  return `${dd}${mm}${yy}_GradeTracker_Progress`;
+}
+function daysAgoLabel(dateStr){
+  const dt=parseDateDDMMYYYY(dateStr);
+  if(!dt)return dateStr?'Date unable to fetch':null;
+  const d=daysAgo(dt);
+  if(d===0)return'Today';
+  if(d===1)return'1 day ago';
+  if(d<0)return`In ${Math.abs(d)} days`;
+  return`${d} days ago`;
+}
+function getCurrentDateStr(){
+  const now=new Date();
+  const dd=String(now.getDate()).padStart(2,'0');
+  const mm=String(now.getMonth()+1).padStart(2,'0');
+  const yyyy=now.getFullYear();
+  return`${dd}/${mm}/${yyyy}`;
+}
+
+// ── COLOUR ────────────────────────────────────────────────────────────
+function col(pct){
+  // row: solid pastel for clear readability · bar: vivid fill · text: dark label · bd/bg: pill colours · side: sidebar badge
+  if(pct===null)return{row:'#eef4fb',bar:'#93c5fd',text:'#1e40af',bd:'#bfdbfe',bg:'#dbeafe',side:'#dbeafe',sidetxt:'#1e40af'};
+  if(pct>=.90) return{row:'#d1fae5',bar:'#10b981',text:'#065f46',bd:'#6ee7b7',bg:'#a7f3d0',side:'#a7f3d0',sidetxt:'#065f46'};
+  if(pct>=.75) return{row:'#dcfce7',bar:'#22c55e',text:'#166534',bd:'#86efac',bg:'#bbf7d0',side:'#bbf7d0',sidetxt:'#166534'};
+  if(pct>=.50) return{row:'#fef9c3',bar:'#eab308',text:'#854d0e',bd:'#fde047',bg:'#fef08a',side:'#fef08a',sidetxt:'#854d0e'};
+  return       {row:'#fee2e2',bar:'#ef4444',text:'#991b1b',bd:'#fca5a5',bg:'#fecaca',side:'#fecaca',sidetxt:'#991b1b'};
+}
+function eff(r){
+  const exam=r.max>0?r.score/r.max:null;
+  const sc=parseFloat(r.sc),st=parseFloat(r.st);
+  const sp=(!isNaN(sc)&&!isNaN(st)&&st>0)?sc/st:null;
+  if(exam!==null&&sp!==null)return(exam+sp)/2;
   return exam;
 }
-
-function pctBar(pct, c) {
-  if(pct===null) return '<span style="color:#d1d5db">—</span>';
+function pctHtml(pct,c){
+  if(pct===null)return`<div class="pct-wrap"><span style="color:var(--text3)">—</span></div>`;
   const p=Math.round(pct*100);
-  return `<div class="pct-wrap"><div class="pct-bar"><div class="pct-fill" style="width:${p}%;background:${c.bar}"></div></div><span class="pct-lbl" style="color:${c.text}">${p}%</span></div>`;
+  return`<div class="pct-wrap"><div class="pct-bar"><div class="pct-fill" style="width:${p}%;background:${c.bar}"></div></div><span class="pct-lbl" style="color:${c.text}">${p}%</span></div>`;
+}
+function spPctStr(r){
+  const sc=parseFloat(r.sc),st=parseFloat(r.st);
+  if(!isNaN(sc)&&!isNaN(st)&&st>0){const c=col(sc/st);return`<span style="color:${c.text}">${Math.round(sc/st*100)}%</span>`;}
+  return`<span style="color:var(--text3)">—</span>`;
 }
 
-function spPctHtml(r) {
-  const sc=parseFloat(r.spCorrect),st=parseFloat(r.spTotal);
-  if(!isNaN(sc)&&!isNaN(st)&&st>0){
-    const p=Math.round(sc/st*100);
-    return `<span style="color:${colorOf(sc/st).text}">${p}%</span>`;
-  }
-  return '—';
+// ── SIDEBAR ───────────────────────────────────────────────────────────
+function renderSidebar(){
+  const list=document.getElementById('subjectList');
+  list.innerHTML='';
+  const ids=Object.keys(subjects);
+  if(!ids.length){list.innerHTML=`<div style="padding:12px 10px;font-size:.74rem;color:var(--text3)">No subjects yet</div>`;return;}
+  ids.forEach(id=>{
+    const subj=subjects[id];
+    const rows=subj.rows||[];
+    const tM=rows.reduce((s,r)=>s+(parseInt(r.max)||0),0);
+    const tS=rows.reduce((s,r)=>s+(parseInt(r.score)||0),0);
+    const pct=tM>0?tS/tM:null;
+    const pctRound=pct!==null?Math.round(pct*100):null;
+    const c=col(pct);
+    const btn=document.createElement('button');
+    btn.className='subj-btn'+(id===activeId?' active':'');
+    // colour the button background by subject progress
+    const btnBg = id===activeId ? c.side : 'transparent';
+    const btnColor = id===activeId ? c.sidetxt : 'var(--text2)';
+    btn.style.cssText=`background:${btnBg};color:${btnColor};`;
+    btn.innerHTML=`<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(subj.name)}</span>${pctRound!==null?`<span class="subj-score" style="background:${c.bg};color:${c.text};border:1px solid ${c.bd}">${pctRound}%</span>`:''}<button class="subj-del" onclick="event.stopPropagation();deleteSubject('${id}')">✕</button>`;
+    btn.onclick=()=>{activeId=id;markDirty();renderSidebar();renderMain();};
+    list.appendChild(btn);
+  });
 }
 
-function render() {
-  document.getElementById('subjectName').textContent = subject || 'Grade Tracker';
-  const tbody = document.getElementById('tbody');
-  tbody.innerHTML = '';
+// ── MAIN RENDER ───────────────────────────────────────────────────────
+function renderMain(){
+  const area=document.getElementById('tableArea');
+  const titleEl=document.getElementById('topbarTitle');
+  if(!activeId||!subjects[activeId]){
+    titleEl.textContent='—';
+    document.getElementById('topbarPills').innerHTML='';
+    area.innerHTML=`<div class="empty-state"><div class="icon">📊</div><h2>No subjects yet</h2><p>Click <strong>Add Subject</strong> in the sidebar, or import a CSV / Excel file.</p></div>`;
+    return;
+  }
+  const subj=subjects[activeId];
+  titleEl.textContent=subj.name;
 
-  if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="9"><div class="empty"><h3>No data yet</h3><p>Import a .txt file or click "Add Row" to get started.</p><button class="btn primary" onclick="document.getElementById('fileInput').click()" style="margin:0 auto"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import .txt</button></div></td></tr>`;
-    updateSummary(); return;
+  // Date chip
+  const dateStr=subj.date||'';
+  let dateHtml='';
+  if(dateStr){
+    const label=daysAgoLabel(dateStr);
+    const isErr=(label==='Date unable to fetch');
+    dateHtml=`<div class="date-chip" style="${isErr?'background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.2);color:#dc2626;':''}">
+      <div class="dot" style="${isErr?'background:#ef4444;':''}"></div>
+      ${isErr?'⚠️ Date unable to fetch':`${esc(dateStr)} · ${label}`}
+    </div>`;
   }
 
-  rows.forEach((r,i) => {
-    const pct=effectivePct(r), c=colorOf(pct);
-    const codes = r.codes||[];
-    const sparxHtml = codes.length
-      ? codes.map(code=>`<span class="sparx-chip" id="chip-${i}-${code.replace(/\W/g,'')}" onclick="copySparx('${code}','chip-${i}-${code.replace(/\W/g,'')}')">${code}<span class="ico">⎘</span></span>`).join('')
-      : '<span style="color:#d1d5db;font-size:.75rem">—</span>';
+  area.innerHTML=`
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:#ef4444"></div>Below 50%</div>
+      <div class="leg"><div class="leg-dot" style="background:#eab308"></div>50–74%</div>
+      <div class="leg"><div class="leg-dot" style="background:#22c55e"></div>75–89%</div>
+      <div class="leg"><div class="leg-dot" style="background:#10b981"></div>90–100%</div>
+      <span style="margin-left:auto;color:var(--text3);font-size:.69rem">Click cell to edit · Click Sparx to copy &amp; open</span>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr>
+        <th>Topic</th><th>Sparx Code</th>
+        <th class="c">Max</th><th class="c">Score</th><th class="c">%</th>
+        <th class="c">Sparx Practice<br><span style="font-weight:400;opacity:.6;font-size:.58rem">correct / total</span></th>
+        <th>Feedback</th><th class="c">Practice<br>Paper</th>
+        <th class="c" style="width:32px"></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table></div>
+    <button class="add-row-btn" onclick="addRow()">
+      <svg style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Row
+    </button>`;
 
-    const tr = document.createElement('tr');
-    tr.className = 'data-row'; tr.id = 'row-'+i;
-    tr.innerHTML = `
-      <td style="background:${c.row};font-weight:500" id="topic-td-${i}">${escHtml(r.topic)}</td>
-      <td style="background:${c.row}">${sparxHtml}</td>
-      <td class="c" style="background:${c.row}">${r.maxMark}</td>
-      <td class="c" style="background:${c.row};font-weight:700;color:${c.text}">${r.yourMark}</td>
-      <td class="c" style="background:${c.row}" id="pct-td-${i}">${pctBar(pct,c)}</td>
-      <td class="c" style="background:${c.row}">
-        <div class="sp-inputs">
-          <input id="sc-${i}" type="number" min="0" placeholder="✓" value="${r.spCorrect||''}" oninput="onSp(${i})">
-          <span class="div">/</span>
-          <input id="st-${i}" type="number" min="0" placeholder="n" value="${r.spTotal||''}" oninput="onSp(${i})">
-          <span class="sp-pct" id="sp-pct-${i}">${spPctHtml(r)}</span>
-        </div>
-      </td>
-      <td style="background:${c.row}">${r.feedback?`<span class="feed-tag" title="${escHtml(r.feedback)}">${escHtml(r.feedback)}</span>`:'<span style="color:#d1d5db;font-size:.75rem">—</span>'}</td>
-      <td class="c" id="pp-cell-${i}" style="background:${r.practicePaper?'#dcfce7':'#fee2e2'}">
-        <input type="checkbox" class="pp-check" id="pp-${i}" ${r.practicePaper?'checked':''} onchange="onPP(${i})">
-      </td>
-      <td class="c" style="background:${c.row}"><button class="del-btn" onclick="delRow(${i})" title="Delete">✕</button></td>
-    `;
+  // Inject date chip into topbar pills
+  const pillsEl=document.getElementById('topbarPills');
+  buildTableRows();
+  updatePills();
+  // prepend date chip
+  if(dateHtml) pillsEl.insertAdjacentHTML('afterbegin',dateHtml);
+}
+
+function buildTableRows(){
+  if(!activeId||!subjects[activeId])return;
+  const rows=subjects[activeId].rows||[];
+  const tbody=document.getElementById('tbody');
+  if(!tbody)return;
+  tbody.innerHTML='';
+  rows.forEach((r,i)=>{
+    const pct=eff(r),c=col(pct);
+    const tr=document.createElement('tr');
+    tr.className='data-row';tr.id='tr-'+i;
+
+    function mkCell(val,cls,onDone,numOnly){
+      const td=document.createElement('td');
+      const div=document.createElement('div');
+      div.className='cell'+(cls?' '+cls:'');
+      div.textContent=val;
+      div.setAttribute('contenteditable','false');
+      div.addEventListener('click',()=>{
+        div.setAttribute('contenteditable','true');div.focus();
+        const rng=document.createRange();rng.selectNodeContents(div);
+        window.getSelection().removeAllRanges();window.getSelection().addRange(rng);
+      });
+      div.addEventListener('keydown',e=>{
+        if(e.key==='Enter'){e.preventDefault();div.blur();}
+        if(numOnly){const ok=['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Enter'];if(!ok.includes(e.key)&&!/^\d$/.test(e.key))e.preventDefault();}
+      });
+      div.addEventListener('blur',()=>{div.setAttribute('contenteditable','false');onDone(div.textContent.trim());});
+      td.appendChild(div);return{td,div};
+    }
+
+    // Apply row colour to tr — all tds inherit via CSS
+    tr.style.background=c.row;
+
+    // Topic
+    const{td:tdT}=mkCell(r.topic,'',v=>{rows[i].topic=v||r.topic;markDirty();});
+    tr.appendChild(tdT);
+
+    // Sparx
+    const tdS=document.createElement('td');tdS.style.padding='5px 10px';
+    const sw=document.createElement('div');sw.style.cssText='display:flex;flex-wrap:wrap;align-items:center;gap:2px;';
+    (r.codes||[]).forEach(code=>{
+      const chip=document.createElement('span');chip.className='sparx-chip';
+      chip.innerHTML=`${code}<span class="ico">⎘</span>`;
+      chip.onclick=()=>navigator.clipboard.writeText(code).then(()=>{
+        chip.classList.add('copied');setTimeout(()=>chip.classList.remove('copied'),900);
+        toast('Copied '+code+' — opening Sparx…');window.open('https://sparxscience.com/','_blank');
+      });
+      sw.appendChild(chip);
+    });
+    const si=document.createElement('input');si.type='text';
+    si.placeholder=(r.codes&&r.codes.length)?'+code':'R000';
+    si.title='Type code + Enter. Use | for multiple e.g. R914|R746';
+    si.style.cssText='width:58px;padding:2px 5px;border:1.5px dashed rgba(26,111,212,.35);border-radius:5px;font-size:.7rem;font-family:monospace;background:rgba(255,255,255,.5);color:var(--text2);outline:none;';
+    si.onfocus=()=>si.style.borderColor='var(--accent)';
+    si.onblur=()=>si.style.borderColor='rgba(26,111,212,.35)';
+    si.onkeydown=e=>{if(e.key==='Enter'){const v=si.value.trim();if(v){rows[i].codes=v.split('|').map(x=>x.trim()).filter(Boolean);si.value='';markDirty();buildTableRows();updatePills();}}};
+    sw.appendChild(si);tdS.appendChild(sw);tr.appendChild(tdS);
+
+    // Max
+    const{td:tdM}=mkCell(r.max,'center num',v=>{rows[i].max=parseInt(v)||0;markDirty();softRefresh(i);},true);
+    tr.appendChild(tdM);
+    // Score
+    const{td:tdSc,div:scoreDiv}=mkCell(r.score,'center num',v=>{rows[i].score=parseInt(v)||0;markDirty();softRefresh(i);},true);
+    scoreDiv.style.color=c.text; tr.appendChild(tdSc);
+    // Pct
+    const tdP=document.createElement('td');tdP.id='pct-'+i;tdP.innerHTML=pctHtml(pct,c);tr.appendChild(tdP);
+
+    // Sparx practice
+    const tdSp=document.createElement('td');
+    tdSp.innerHTML=`<div class="sp-cell"><input id="sc-${i}" type="text" inputmode="numeric" placeholder="✓" value="${esc(r.sc||'')}"><span class="sp-div">/</span><input id="st-${i}" type="text" inputmode="numeric" placeholder="n" value="${esc(r.st||'')}"><span class="sp-pct" id="sppct-${i}">${spPctStr(r)}</span></div>`;
+    tr.appendChild(tdSp);
+
+    // Feedback
+    const{td:tdF,div:feedDiv}=mkCell('','',v=>{rows[i].feedback=v;markDirty();});
+    if(r.feedback)feedDiv.innerHTML=`<span class="feed-tag">${esc(r.feedback)}</span>`;
+    feedDiv.addEventListener('click',()=>{feedDiv.textContent=r.feedback||'';});
+    tr.appendChild(tdF);
+
+    // Practice paper — always tinted green/red regardless of row colour
+    const tdPp=document.createElement('td');tdPp.id='ppc-'+i;
+    tdPp.style.background=r.pp?'#bbf7d0':'#fecaca';
+    tdPp.innerHTML=`<div class="pp-wrap"><input type="checkbox" class="pp-check" id="pp-${i}" ${r.pp?'checked':''}></div>`;
+    tr.appendChild(tdPp);
+
+    // Delete
+    const tdDel=document.createElement('td');
+    tdDel.innerHTML=`<button class="del-btn">✕</button>`;
+    tdDel.querySelector('.del-btn').onclick=()=>{rows.splice(i,1);markDirty();buildTableRows();updatePills();renderSidebar();};
+    tr.appendChild(tdDel);
+
     tbody.appendChild(tr);
+    document.getElementById('sc-'+i).addEventListener('input',()=>onSp(i));
+    document.getElementById('st-'+i).addEventListener('input',()=>onSp(i));
+    document.getElementById('pp-'+i).addEventListener('change',()=>onPP(i));
   });
 
   // Total
-  const totMax=rows.reduce((s,r)=>s+(parseInt(r.maxMark)||0),0);
-  const totScore=rows.reduce((s,r)=>s+(parseInt(r.yourMark)||0),0);
-  const totPct=totMax>0?totScore/totMax:null, tc=colorOf(totPct);
-  const ttr=document.createElement('tr'); ttr.className='total-row';
-  ttr.innerHTML=`<td>Total</td><td></td><td class="c">${totMax}</td><td class="c" style="color:${tc.text}">${totScore}</td><td class="c">${pctBar(totPct,tc)}</td><td></td><td></td><td></td><td></td>`;
+  const tM=rows.reduce((s,r)=>s+(parseInt(r.max)||0),0);
+  const tS=rows.reduce((s,r)=>s+(parseInt(r.score)||0),0);
+  const tPct=tM>0?tS/tM:null,tc=col(tPct);
+  const ttr=document.createElement('tr');ttr.className='total-row';
+  ttr.innerHTML=`<td><div class="cell">Total</div></td><td></td><td><div class="cell center num">${tM}</div></td><td><div class="cell center num" style="color:${tc.text}">${tS}</div></td><td>${pctHtml(tPct,tc)}</td><td></td><td></td><td></td><td></td>`;
   tbody.appendChild(ttr);
-  updateSummary();
 }
 
-function updateSummary() {
-  let totMax=0,totScore=0,cr=0,ca=0,cg=0,ce=0;
-  rows.forEach(r => {
-    totMax+=parseInt(r.maxMark)||0; totScore+=parseInt(r.yourMark)||0;
-    const p=effectivePct(r);
+function softRefresh(i){
+  if(!activeId||!subjects[activeId])return;
+  const rows=subjects[activeId].rows||[];
+  const r=rows[i];if(!r)return;
+  const pct=eff(r),c=col(pct);
+  const tr=document.getElementById('tr-'+i);if(!tr)return;
+  // Set row colour on tr — cells inherit via background:inherit in CSS
+  tr.style.background=c.row;
+  // Score text colour
+  const sc=tr.cells[3].querySelector('.cell');if(sc)sc.style.color=c.text;
+  // Update pct cell
+  const ptd=document.getElementById('pct-'+i);if(ptd)ptd.innerHTML=pctHtml(pct,c);
+  // Update total row
+  const tM=rows.reduce((s,r)=>s+(parseInt(r.max)||0),0);
+  const tS=rows.reduce((s,r)=>s+(parseInt(r.score)||0),0);
+  const tPct=tM>0?tS/tM:null,tc=col(tPct);
+  const tbody=document.getElementById('tbody');
+  if(tbody){const ttr=tbody.querySelector('.total-row');if(ttr){ttr.cells[4].innerHTML=pctHtml(tPct,tc);const sc2=ttr.cells[3].querySelector('.cell');if(sc2){sc2.style.color=tc.text;sc2.textContent=tS;}const mc=ttr.cells[2].querySelector('.cell');if(mc)mc.textContent=tM;}}
+  updatePills();renderSidebar();
+}
+
+function onSp(i){
+  if(!activeId||!subjects[activeId])return;
+  const r=subjects[activeId].rows[i];if(!r)return;
+  r.sc=document.getElementById('sc-'+i)?.value||'';
+  r.st=document.getElementById('st-'+i)?.value||'';
+  const el=document.getElementById('sppct-'+i);if(el)el.innerHTML=spPctStr(r);
+  softRefresh(i);markDirty();
+}
+function onPP(i){
+  if(!activeId||!subjects[activeId])return;
+  const r=subjects[activeId].rows[i];if(!r)return;
+  r.pp=document.getElementById('pp-'+i).checked;
+  const cell=document.getElementById('ppc-'+i);
+  if(cell)cell.style.background=r.pp?'#bbf7d0':'#fecaca';
+  markDirty();
+}
+
+function updatePills(){
+  if(!activeId||!subjects[activeId]){document.getElementById('topbarPills').innerHTML='';return;}
+  const rows=subjects[activeId].rows||[];
+  let tM=0,tS=0,cr=0,ca=0,cg=0,ce=0;
+  rows.forEach(r=>{
+    tM+=parseInt(r.max)||0;tS+=parseInt(r.score)||0;
+    const p=eff(r);
     if(p===null){}else if(p>=.90)ce++;else if(p>=.75)cg++;else if(p>=.50)ca++;else cr++;
   });
-  const p=totMax>0?totScore/totMax:null, c=colorOf(p);
-  document.getElementById('summaryPills').innerHTML = rows.length ? `
-    <div class="pill" style="background:${c.bg};color:${c.text};border-color:${c.bd}">Overall ${p!==null?Math.round(p*100)+'%':'—'} (${totScore}/${totMax})</div>
-    ${cr?`<div class="pill" style="background:#fff1f1;color:#b91c1c;border-color:#fca5a5">🔴 ${cr}</div>`:''}
-    ${ca?`<div class="pill" style="background:#fffbeb;color:#92400e;border-color:#fde68a">🟠 ${ca}</div>`:''}
-    ${cg?`<div class="pill" style="background:#f0fdf4;color:#166534;border-color:#86efac">🟢 ${cg}</div>`:''}
-    ${ce?`<div class="pill" style="background:#ecfdf5;color:#065f46;border-color:#6ee7b7">💚 ${ce}</div>`:''}
-  ` : '';
+  const p=tM>0?tS/tM:null,c=col(p);
+  const pillsEl=document.getElementById('topbarPills');
+  const existing=pillsEl.querySelector('.date-chip');
+  pillsEl.innerHTML=`
+    <div class="pill" style="background:${c.bg};color:${c.text};border-color:${c.bd}">
+      ${p!==null?Math.round(p*100)+'%':'—'} (${tS}/${tM})
+    </div>
+    ${cr?`<div class="pill" style="background:#fee2e2;color:#991b1b;border-color:#fca5a5">🔴 ${cr}</div>`:''}
+    ${ca?`<div class="pill" style="background:#fef9c3;color:#854d0e;border-color:#fde047">🟠 ${ca}</div>`:''}
+    ${cg?`<div class="pill" style="background:#dcfce7;color:#166534;border-color:#86efac">🟢 ${cg}</div>`:''}
+    ${ce?`<div class="pill" style="background:#d1fae5;color:#065f46;border-color:#6ee7b7">💚 ${ce}</div>`:''}`;
+  if(existing) pillsEl.prepend(existing);
 }
 
-function onSp(i) {
-  rows[i].spCorrect=document.getElementById('sc-'+i)?.value||'';
-  rows[i].spTotal=document.getElementById('st-'+i)?.value||'';
-  const pct=effectivePct(rows[i]),c=colorOf(pct);
-  const tr=document.getElementById('row-'+i);
-  if(tr){
-    Array.from(tr.cells).forEach((td,ci)=>{ if(ci!==7) td.style.background=c.row; });
-    document.getElementById('pct-td-'+i).innerHTML=pctBar(pct,c);
-    document.getElementById('sp-pct-'+i).innerHTML=spPctHtml(rows[i]);
-    tr.cells[3].style.color=c.text;
-  }
-  updateSummary(); save();
+// ── ADD / DELETE SUBJECT ──────────────────────────────────────────────
+function openAddSubject(){
+  document.getElementById('newSubjectName').value='';
+  document.getElementById('addSubjectModal').classList.add('open');
+  setTimeout(()=>document.getElementById('newSubjectName').focus(),80);
+}
+function confirmAddSubject(){
+  const name=document.getElementById('newSubjectName').value.trim();
+  if(!name)return;
+  const id=genId();
+  subjects[id]={name,rows:[],date:getCurrentDateStr()};
+  activeId=id;markDirty();closeModal('addSubjectModal');renderSidebar();renderMain();
+  toast(`Added "${name}"`);
+}
+function deleteSubject(id){
+  if(!confirm(`Delete "${subjects[id]?.name}"? This can't be undone.`))return;
+  delete subjects[id];
+  if(activeId===id)activeId=Object.keys(subjects)[0]||null;
+  markDirty();renderSidebar();renderMain();
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.getElementById('addSubjectModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal('addSubjectModal');});
+
+function addRow(){
+  if(!activeId||!subjects[activeId])return;
+  subjects[activeId].rows.push({topic:'New Topic',codes:[],max:0,score:0,feedback:'',sc:'',st:'',pp:false});
+  markDirty();buildTableRows();updatePills();renderSidebar();
+  setTimeout(()=>{
+    const i=subjects[activeId].rows.length-1;
+    const cell=document.getElementById('tr-'+i)?.cells[0]?.querySelector('.cell');
+    if(cell){cell.setAttribute('contenteditable','true');cell.focus();document.execCommand('selectAll',false,null);}
+  },40);
 }
 
-function onPP(i) {
-  rows[i].practicePaper=document.getElementById('pp-'+i).checked;
-  const cell=document.getElementById('pp-cell-'+i);
-  if(cell) cell.style.background=rows[i].practicePaper?'#dcfce7':'#fee2e2';
-  save();
-}
+document.getElementById('topbarTitle').addEventListener('blur',()=>{
+  if(!activeId||!subjects[activeId])return;
+  const v=document.getElementById('topbarTitle').textContent.trim();
+  if(v&&v!=='—'){subjects[activeId].name=v;markDirty();renderSidebar();}
+});
+document.getElementById('topbarTitle').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('topbarTitle').blur();}});
 
-function delRow(i) { rows.splice(i,1); render(); save(); }
-
-function addRow() {
-  rows.push({topic:'New Topic',codes:[],maxMark:0,yourMark:0,feedback:'',spCorrect:'',spTotal:'',practicePaper:false});
-  render(); save();
-  const i=rows.length-1;
-  const td=document.getElementById('topic-td-'+i);
-  if(td){ td.contentEditable=true; td.style.outline='2px solid var(--accent)'; td.focus();
-    td.onblur=()=>{ rows[i].topic=td.textContent.trim()||'New Topic'; td.contentEditable=false; td.style.outline=''; save(); };
-  }
-}
-
-let toastT;
-function toast(msg) {
-  const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
-  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),1900);
-}
-
-function copySparx(code,chipId) {
-  navigator.clipboard.writeText(code).then(()=>{
-    const chip=document.getElementById(chipId);
-    if(chip){chip.classList.add('copied');setTimeout(()=>chip.classList.remove('copied'),1100);}
-    toast('Copied '+code+' — opening Sparx…');
-    window.open('https://sparxscience.com/','_blank');
-  });
-}
-
-function handleFile(e) {
-  const file=e.target.files[0]; if(!file) return;
+// ── IMPORT ────────────────────────────────────────────────────────────
+function handleImport(e){
+  const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
-  reader.onload=ev=>parseTxt(ev.target.result);
-  reader.readAsText(file); e.target.value='';
+  const isTxt=file.name.endsWith('.txt')||file.name.endsWith('.csv');
+  reader.onload=ev=>{
+    try{if(isTxt)importFromText(ev.target.result);else importFromXLSX(ev.target.result);}
+    catch(err){toast('⚠️ '+err.message);}
+  };
+  if(isTxt)reader.readAsText(file);else reader.readAsBinaryString(file);
+  e.target.value='';
 }
 
-function parseTxt(text) {
-  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
-  let newSubject=subject; const newRows=[];
+function importFromText(text){
+  const lines=text.split('\n').map(l=>l.trim());
+  let curName=null,curDate=null,curRows=[],imported=0;
+  function flush(){
+    if(curName&&curRows.length){
+      const id=genId();
+      subjects[id]={name:curName,rows:curRows,date:curDate||''};
+      imported++;if(!activeId)activeId=id;
+    }
+  }
   lines.forEach(line=>{
-    if(line.startsWith('//')||line.startsWith('#')) return;
-    if(line.toUpperCase().startsWith('SUBJECT:')){newSubject=line.slice(8).trim();return;}
+    if(!line||line.startsWith('//'))return;
+    if(line.toUpperCase().startsWith('SUBJECT:')){flush();curName=line.slice(8).trim();curRows=[];curDate=null;return;}
+    if(line.toUpperCase().startsWith('DATE:')){curDate=line.slice(5).trim();return;}
+    if(!curName)return;
     const parts=line.split(',');
-    if(parts.length<4) return;
-    const [topicRaw,codesRaw,maxRaw,scoreRaw,...feedParts]=parts;
-    const topic=topicRaw.trim(); if(!topic) return;
-    const codes=codesRaw.trim()?codesRaw.trim().split('|').map(c=>c.trim()).filter(Boolean):[];
-    newRows.push({topic,codes,maxMark:parseInt(maxRaw)||0,yourMark:parseInt(scoreRaw)||0,feedback:feedParts.join(',').trim(),spCorrect:'',spTotal:'',practicePaper:false});
+    if(parts.length<4)return;
+    const[topicRaw,codesRaw,maxRaw,scoreRaw,...feedParts]=parts;
+    const topic=topicRaw.trim();if(!topic||topic.toLowerCase()==='total')return;
+    curRows.push({topic,codes:parseCodes(codesRaw),max:parseInt(maxRaw)||0,score:parseInt(scoreRaw)||0,feedback:feedParts.join(',').trim(),sc:'',st:'',pp:false});
   });
-  if(!newRows.length){toast('⚠️ No valid rows found');return;}
-  subject=newSubject||'Subject'; rows=newRows; render(); save();
-  toast(`✓ Imported ${newRows.length} topics`);
+  flush();
+  if(!imported){toast('⚠️ No subjects found in file');return;}
+  markDirty();renderSidebar();renderMain();
+  toast(`✓ Imported ${imported} subject${imported>1?'s':''}`);
 }
 
-function exportTxt() {
-  if(!rows.length){toast('Nothing to export');return;}
-  let out=`SUBJECT: ${subject}\n// Topic, SparxCode (use | for multiple), MaxMark, YourMark, Feedback\n`;
-  rows.forEach(r=>{ out+=`${r.topic}, ${(r.codes||[]).join('|')}, ${r.maxMark}, ${r.yourMark}, ${r.feedback||''}\n`; });
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([out],{type:'text/plain'}));
-  a.download=`${(subject||'grades').replace(/\s+/g,'_')}_grades.txt`; a.click();
-  toast('Exported!');
+function importFromXLSX(data){
+  const wb=XLSX.read(data,{type:'binary'});
+  let imported=0;
+  wb.SheetNames.forEach(name=>{
+    const ws=wb.Sheets[name];
+    const rows2=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    // Check for DATE row
+    let dateStr='';
+    for(let i=0;i<Math.min(4,rows2.length);i++){
+      const first=String(rows2[i][0]||'').trim();
+      if(first.toUpperCase().startsWith('DATE:')){dateStr=first.slice(5).trim();break;}
+    }
+    let start=0;
+    for(let i=0;i<Math.min(6,rows2.length);i++){
+      const r=rows2[i].map(c=>String(c).toLowerCase());
+      if(r.some(c=>c.includes('topic')||c.includes('mark'))){start=i+1;break;}
+    }
+    const newRows=[];
+    for(let i=start;i<rows2.length;i++){
+      const cols=rows2[i];
+      const topic=String(cols[0]||'').trim();
+      if(!topic||topic.toLowerCase()==='total')continue;
+      newRows.push({topic,codes:parseCodes(String(cols[1]||'')),max:parseInt(cols[2])||0,score:parseInt(cols[3])||0,feedback:String(cols[4]||'').trim(),sc:'',st:'',pp:false});
+    }
+    if(newRows.length){const id=genId();subjects[id]={name,rows:newRows,date:dateStr};imported++;if(!activeId)activeId=id;}
+  });
+  if(!imported){toast('⚠️ No data found');return;}
+  markDirty();renderSidebar();renderMain();
+  toast(`✓ Imported ${imported} sheet${imported>1?'s':''}`);
 }
 
-function dlTemplate() {
-  const txt=`SUBJECT: Biology
-// Topic, SparxCode (use | for multiple), MaxMark, YourMark, Feedback
-// Leave SparxCode or Feedback blank with a comma. Lines starting with // are ignored.
-Viral Diseases, R366, 4, 3, Knew but could not remember
-Vaccination, R938, 2, 0, Did not know
-Non Communicable Disease, R505, 1, 1,
-Plant Diseases, R914|R746, 5, 4, Knew but could not remember
-Maths, , 3, 3,
-`;
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
-  a.download='grades_template.txt'; a.click(); toast('Template downloaded!');
+function parseCodes(raw){
+  if(!raw||!String(raw).trim())return[];
+  return String(raw).split(/[|,]/).map(c=>c.trim()).filter(Boolean);
 }
 
-function toggleHint() {
-  const h=document.getElementById('fmtHint');
-  h.style.display=h.style.display==='block'?'none':'block';
+// ── EXPORT ────────────────────────────────────────────────────────────
+function exportCSV(){
+  const ids=Object.keys(subjects);
+  if(!ids.length){toast('Nothing to export');return;}
+  let out='';
+  ids.forEach(id=>{
+    const subj=subjects[id];
+    out+=`SUBJECT: ${subj.name}\n`;
+    out+=`DATE: ${getCurrentDateStr()}\n`;
+    out+=`// Topic, SparxCode, MaxMark, YourMark, Feedback, SparxCorrect, SparxTotal, PracticePaper\n`;
+    (subj.rows||[]).forEach(r=>{
+      out+=`${r.topic}, ${(r.codes||[]).join('|')}, ${r.max}, ${r.score}, ${r.feedback||''}, ${r.sc||''}, ${r.st||''}, ${r.pp?'yes':'no'}\n`;
+    });
+    out+='\n';
+  });
+  dl(new Blob([out],{type:'text/csv'}),formatExportFilename()+'.csv');
+  toast('Exported → '+formatExportFilename()+'.csv');
 }
 
-function escHtml(str) {
-  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function exportXLSX(){
+  const ids=Object.keys(subjects);
+  if(!ids.length){toast('Nothing to export');return;}
+  const wb=XLSX.utils.book_new();
+  ids.forEach(id=>{
+    const subj=subjects[id];
+    const data=[
+      [`DATE: ${getCurrentDateStr()}`],
+      ['Topic','Sparx Code','Max Mark','Your Mark','Feedback','Sparx Correct','Sparx Total','Practice Paper']
+    ];
+    (subj.rows||[]).forEach(r=>{
+      data.push([r.topic,(r.codes||[]).join('|'),r.max,r.score,r.feedback||'',r.sc||'',r.st||'',r.pp?'Yes':'No']);
+    });
+    const tM=(subj.rows||[]).reduce((s,r)=>s+(parseInt(r.max)||0),0);
+    const tS=(subj.rows||[]).reduce((s,r)=>s+(parseInt(r.score)||0),0);
+    data.push(['Total','',tM,tS,'','','','']);
+    const ws=XLSX.utils.aoa_to_sheet(data);
+    ws['!cols']=[{wch:28},{wch:14},{wch:8},{wch:8},{wch:32},{wch:10},{wch:10},{wch:13}];
+    const sName=subj.name.slice(0,31).replace(/[:\\/?*[\]]/g,'');
+    XLSX.utils.book_append_sheet(wb,ws,sName);
+  });
+  XLSX.writeFile(wb,formatExportFilename()+'.xlsx');
+  toast('Exported → '+formatExportFilename()+'.xlsx');
 }
 
-// Drag & drop
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();}
+
+// ── DRAG DROP ─────────────────────────────────────────────────────────
 document.addEventListener('dragover',e=>{e.preventDefault();document.getElementById('dropOverlay').classList.add('active');});
 document.addEventListener('dragleave',e=>{if(!e.relatedTarget)document.getElementById('dropOverlay').classList.remove('active');});
 document.addEventListener('drop',e=>{
-  e.preventDefault(); document.getElementById('dropOverlay').classList.remove('active');
+  e.preventDefault();document.getElementById('dropOverlay').classList.remove('active');
   const file=e.dataTransfer.files[0];
-  if(file&&(file.name.endsWith('.txt')||file.name.endsWith('.csv'))){
-    const r=new FileReader(); r.onload=ev=>parseTxt(ev.target.result); r.readAsText(file);
-  } else { toast('Please drop a .txt file'); }
+  if(file)handleImport({target:{files:[file],value:''}});
 });
 
-render();
+// ── TOAST ─────────────────────────────────────────────────────────────
+let toastT;
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2400);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── INIT ──────────────────────────────────────────────────────────────
+renderSidebar();
+renderMain();
 </script>
 </body>
 </html>
