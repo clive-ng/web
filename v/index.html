@@ -333,11 +333,16 @@
                 let description = "Video extracted successfully.";
 
                 // ==========================================
-                // STRATEGY 1: Primary Backend APIs (Cobalt)
+                // STRATEGY 1: Primary Backend APIs (Cobalt & Community Instances)
+                // When hosted on a custom server, official APIs often block unknown domains (CORS).
+                // We use community instances and CORS proxies to bypass this.
                 // ==========================================
                 const apiEndpoints = [
+                    { url: 'https://co.wuk.sh/api/json', body: { url: cleanUrl, vQuality: "1080", isAudioOnly: false } },
                     { url: 'https://api.cobalt.tools/', body: { url: cleanUrl, videoQuality: "1080" } },
-                    { url: 'https://co.wuk.sh/api/json', body: { url: cleanUrl, vQuality: "1080", isAudioOnly: false } }
+                    { url: 'https://cobalt-api.kwiatekgames.pl/api/json', body: { url: cleanUrl, vQuality: "1080", isAudioOnly: false } },
+                    // Wrapped in CORS proxy in case your custom server's origin is strictly blocked
+                    { url: `https://corsproxy.io/?${encodeURIComponent('https://co.wuk.sh/api/json')}`, body: { url: cleanUrl, vQuality: "1080", isAudioOnly: false } }
                 ];
 
                 for (const endpoint of apiEndpoints) {
@@ -356,6 +361,7 @@
                             const data = await response.json();
                             if (data.status !== 'error' && data.url) {
                                 extractedVideoUrl = data.url;
+                                console.log(`Success via API: ${endpoint.url}`);
                             }
                         }
                     } catch (err) {
@@ -365,41 +371,68 @@
 
                 // ==========================================
                 // STRATEGY 2: HTML Scraping via GET Proxy
+                // Multiple proxy services used to ensure success even if one goes offline
                 // ==========================================
                 if (!extractedVideoUrl) {
-                    try {
-                        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(cleanUrl)}`;
-                        const response = await fetch(proxyUrl);
-                        
-                        if (response.ok) {
-                            const data = await response.json();
-                            const html = data.contents;
+                    console.log("APIs failed or blocked. Falling back to HTML scraping...");
+                    
+                    const proxyUrls = [
+                        `https://api.allorigins.win/get?url=${encodeURIComponent(cleanUrl)}`,
+                        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(cleanUrl)}`,
+                        `https://corsproxy.io/?${encodeURIComponent(cleanUrl)}`
+                    ];
 
-                            if (html) {
-                                // Extract via OpenGraph tags
+                    for (const proxyUrl of proxyUrls) {
+                        if (extractedVideoUrl) break;
+                        try {
+                            const response = await fetch(proxyUrl);
+                            if (!response.ok) continue;
+
+                            let html = '';
+                            if (proxyUrl.includes('allorigins')) {
+                                const data = await response.json();
+                                html = data.contents;
+                            } else {
+                                html = await response.text();
+                            }
+
+                            if (html && html.length > 100) {
+                                // Attempt A: OpenGraph tags
                                 const ogMatch = html.match(/<meta[^>]*property="og:video"[^>]*content="([^"]+)"/i) || 
                                                 html.match(/<meta[^>]*property="og:video:secure_url"[^>]*content="([^"]+)"/i);
                                 
                                 if (ogMatch && ogMatch[1]) {
                                     extractedVideoUrl = ogMatch[1].replace(/&amp;/g, '&');
-                                } else {
-                                    // Extract via hidden JSON state
+                                } 
+                                
+                                // Attempt B: Hidden JSON state
+                                if (!extractedVideoUrl) {
                                     const jsonMatch = html.match(/"video_versions"\s*:\s*\[[\s\S]*?"url"\s*:\s*"([^"]+)"/);
                                     if (jsonMatch && jsonMatch[1]) {
                                         extractedVideoUrl = jsonMatch[1].replace(/\\u0026/g, '&').replace(/\\\//g, '/');
                                     }
                                 }
 
-                                // Try to grab real thumbnail and description
+                                // Attempt C: Brute-force scan for .mp4 in Meta CDN
+                                if (!extractedVideoUrl) {
+                                    const unescapedHtml = html.replace(/\\\//g, '/');
+                                    const rawUrls = unescapedHtml.match(/https:\/\/[^"'\s]+\.mp4[^"'\s\\]*/g);
+                                    if (rawUrls && rawUrls.length > 0) {
+                                        const validUrl = rawUrls.find(u => u.includes('cdninstagram') || u.includes('scontent'));
+                                        if (validUrl) extractedVideoUrl = validUrl.replace(/\\u0026/g, '&').replace(/&amp;/g, '&');
+                                    }
+                                }
+
+                                // Grab thumbnail and description if available
                                 const imgMatch = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i);
                                 if (imgMatch && imgMatch[1]) thumbnail = imgMatch[1].replace(/&amp;/g, '&');
 
                                 const descMatch = html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i);
                                 if (descMatch && descMatch[1]) description = descMatch[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"');
                             }
+                        } catch (err) {
+                            console.warn("HTML Scrape fallback failed:", err.message);
                         }
-                    } catch (err) {
-                        console.warn("HTML Scrape fallback failed:", err.message);
                     }
                 }
 
@@ -407,7 +440,7 @@
                 // FINAL VALIDATION
                 // ==========================================
                 if (!extractedVideoUrl) {
-                    throw new Error("Failed to extract video. The post may be private, image-only, or blocked.");
+                    throw new Error("Failed to extract video. The post may be private, image-only, or blocked by Meta.");
                 }
 
                 // Extract Author Username
