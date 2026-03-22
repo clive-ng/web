@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThreadSnag - Neumorphic Downloader</title>
+    <!-- Google Fonts: Inter exclusively -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind for layout utilities -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root {
+            /* Neumorphism Color Palette */
+            --bg-color: #e0e5ec;
+            --text-main: #718096; /* Grey text */
+            --shadow-light: #ffffff;
+            --shadow-dark: #a3b1c6;
+            --accent-color: #667eea;
+        }
+
+        /* Force Inter font, uniform size, and uniform grey color on ALL text */
+        * {
+            font-family: 'Inter', sans-serif !important;
+        }
+
+        h1, h2, h3, p, span, a, label, input, button, div {
+            font-size: 16px !important;
+            color: #718096 !important; /* Uniform grey color */
+        }
+
+        /* Keep the play icon white over the dark thumbnail */
+        .play-icon-white {
+            color: #ffffff !important;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Neumorphic Utilities */
+        .neu-flat {
+            border-radius: 30px;
+            background: var(--bg-color);
+            box-shadow: 12px 12px 24px var(--shadow-dark), 
+                        -12px -12px 24px var(--shadow-light);
+        }
+
+        .neu-pressed {
+            border-radius: 20px;
+            background: var(--bg-color);
+            box-shadow: inset 6px 6px 12px var(--shadow-dark), 
+                        inset -6px -6px 12px var(--shadow-light);
+            border: none;
+            outline: none;
+        }
+
+        .neu-button {
+            border-radius: 20px;
+            background: var(--bg-color);
+            box-shadow: 6px 6px 12px var(--shadow-dark), 
+                        -6px -6px 12px var(--shadow-light);
+            transition: all 0.2s ease-in-out;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .neu-button:active {
+            box-shadow: inset 4px 4px 8px var(--shadow-dark), 
+                        inset -4px -4px 8px var(--shadow-light);
+        }
+
+        .neu-circle-pressed {
+            border-radius: 50%;
+            background: var(--bg-color);
+            box-shadow: inset 4px 4px 8px var(--shadow-dark), 
+                        inset -4px -4px 8px var(--shadow-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loader {
+            border: 4px solid rgba(163, 177, 198, 0.3);
+            border-left-color: var(--text-main);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        input::placeholder {
+            color: #a0aec0 !important;
+        }
+
+        /* Hide elements dynamically */
+        .hidden-item {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="py-12 px-4 sm:px-6">
+
+    <div class="max-w-xl w-full flex flex-col gap-10">
+        
+        <!-- Header -->
+        <div class="flex flex-col items-center justify-center text-center gap-4">
+            <!-- Logo Removed -->
+            <h1 class="font-bold tracking-tight">ThreadSnag</h1>
+            <p class="max-w-sm">Extract high-quality videos from Threads using our hybrid extraction engine.</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="neu-flat p-8 w-full flex flex-col gap-6 relative">
+            
+            <form id="extractForm" class="flex flex-col gap-6">
+                <!-- Input Group -->
+                <div class="flex flex-col gap-3">
+                    <label class="font-semibold uppercase tracking-wider ml-2">Post URL</label>
+                    <div class="relative flex items-center">
+                        <i data-lucide="link" class="absolute left-4 w-5 h-5"></i>
+                        <input 
+                            type="text" 
+                            id="urlInput"
+                            class="neu-pressed w-full py-4 pl-12 pr-20"
+                            placeholder="https://www.threads.net/..."
+                            autocomplete="off"
+                        />
+                        <button 
+                            type="button" 
+                            id="pasteBtn"
+                            class="absolute right-3 px-4 py-2 font-bold uppercase tracking-wider neu-button"
+                            style="box-shadow: 2px 2px 5px var(--shadow-dark), -2px -2px 5px var(--shadow-light);"
+                        >
+                            Paste
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div id="errorMsg" class="hidden-item font-medium flex items-center gap-2 px-2">
+                    <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                    <span id="errorText">Invalid URL provided.</span>
+                </div>
+
+                <!-- Action Button -->
+                <button 
+                    type="submit" 
+                    id="extractBtn"
+                    class="neu-button w-full py-4 mt-2 uppercase tracking-widest font-bold"
+                >
+                    <i data-lucide="download" class="w-5 h-5"></i>
+                    <span id="btnText">Extract Video</span>
+                    <div id="btnLoader" class="loader hidden-item"></div>
+                </button>
+            </form>
+        </div>
+
+        <!-- Result Card (Hidden initially) -->
+        <div id="resultCard" class="neu-flat p-8 w-full flex flex-col gap-6 hidden-item transform transition-all duration-500 opacity-0 translate-y-4">
+            
+            <div class="flex items-center gap-4 pb-4 border-b border-gray-300 border-opacity-30">
+                <div class="neu-circle-pressed w-12 h-12 font-bold" id="authorInitial">
+                    @
+                </div>
+                <div>
+                    <h3 class="font-bold" id="authorName">@username</h3>
+                    <p class="font-semibold uppercase tracking-wider">Ready to Download</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-6">
+                <!-- Image Preview (Neumorphic image frame) -->
+                <div class="w-full sm:w-1/2 rounded-3xl p-2 bg-[#e0e5ec]" style="box-shadow: inset 6px 6px 12px var(--shadow-dark), inset -6px -6px 12px var(--shadow-light);">
+                    <div class="w-full aspect-[4/5] rounded-2xl overflow-hidden relative group bg-gray-200">
+                        <img id="thumbnailImg" src="" alt="Thumbnail" class="w-full h-full object-cover opacity-90">
+                        <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-10">
+                            <i data-lucide="play-circle" class="w-12 h-12 drop-shadow-md play-icon-white"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full sm:w-1/2 flex flex-col justify-between py-2">
+                    <p class="mb-6 line-clamp-4 leading-relaxed" id="descriptionText">
+                        Description text goes here.
+                    </p>
+
+                    <div class="space-y-4">
+                        <a id="downloadLink" href="#" target="_blank" rel="noopener noreferrer" class="neu-button w-full py-4">
+                            <i data-lucide="external-link" class="w-5 h-5"></i>
+                            Open & Download
+                        </a>
+                        <p class="text-center px-2">
+                            Right-click or long-press the video in the new tab to save.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // DOM Elements
+        const form = document.getElementById('extractForm');
+        const urlInput = document.getElementById('urlInput');
+        const pasteBtn = document.getElementById('pasteBtn');
+        const extractBtn = document.getElementById('extractBtn');
+        const btnText = document.getElementById('btnText');
+        const btnLoader = document.getElementById('btnLoader');
+        const downloadIcon = extractBtn.querySelector('[data-lucide="download"]');
+        
+        const errorMsg = document.getElementById('errorMsg');
+        const errorText = document.getElementById('errorText');
+        
+        const resultCard = document.getElementById('resultCard');
+        const authorInitial = document.getElementById('authorInitial');
+        const authorName = document.getElementById('authorName');
+        const thumbnailImg = document.getElementById('thumbnailImg');
+        const descriptionText = document.getElementById('descriptionText');
+        const downloadLink = document.getElementById('downloadLink');
+
+        // State variables
+        let isLoading = false;
+
+        // Functions
+        function setLoading(loading) {
+            isLoading = loading;
+            if (loading) {
+                btnText.textContent = "Extracting...";
+                btnLoader.classList.remove('hidden-item');
+                downloadIcon.classList.add('hidden-item');
+                extractBtn.style.pointerEvents = 'none';
+                extractBtn.style.opacity = '0.7';
+                hideError();
+                hideResult();
+            } else {
+                btnText.textContent = "Extract Video";
+                btnLoader.classList.add('hidden-item');
+                downloadIcon.classList.remove('hidden-item');
+                extractBtn.style.pointerEvents = 'auto';
+                extractBtn.style.opacity = '1';
+            }
+        }
+
+        function showError(msg) {
+            errorText.textContent = msg;
+            errorMsg.classList.remove('hidden-item');
+        }
+
+        function hideError() {
+            errorMsg.classList.add('hidden-item');
+        }
+
+        function showResult(data) {
+            authorName.textContent = data.author;
+            authorInitial.textContent = data.author.charAt(1).toUpperCase() || '@';
+            thumbnailImg.src = data.thumbnail;
+            descriptionText.textContent = data.description;
+            downloadLink.href = data.videoUrlHD;
+
+            resultCard.classList.remove('hidden-item');
+            // Trigger animation frame for CSS transition to work
+            setTimeout(() => {
+                resultCard.classList.remove('opacity-0', 'translate-y-4');
+                resultCard.classList.add('opacity-100', 'translate-y-0');
+            }, 50);
+        }
+
+        function hideResult() {
+            resultCard.classList.add('opacity-0', 'translate-y-4');
+            setTimeout(() => {
+                resultCard.classList.add('hidden-item');
+            }, 500);
+        }
+
+        // Paste functionality
+        pasteBtn.addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                urlInput.value = text;
+                hideError();
+            } catch (err) {
+                showError('Failed to read clipboard. Please paste manually.');
+            }
+        });
+
+        // Form Submission (The Extraction Engine)
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = urlInput.value.trim();
+
+            if (!url) {
+                showError('Please enter a valid URL.');
+                return;
+            }
+
+            if (!url.includes('threads.net/') && !url.includes('threads.com/')) {
+                showError('Please enter a valid Threads post URL.');
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                // 1. Clean the URL
+                const cleanUrl = url.split('?')[0].replace('threads.com', 'threads.net');
+                let extractedVideoUrl = null;
+                let thumbnail = 'https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?q=80&w=1000&auto=format&fit=crop';
+                let description = "Video extracted successfully.";
+
+                // ==========================================
+                // STRATEGY 1: Primary Backend APIs (Cobalt)
+                // ==========================================
+                const apiEndpoints = [
+                    { url: 'https://api.cobalt.tools/', body: { url: cleanUrl, videoQuality: "1080" } },
+                    { url: 'https://co.wuk.sh/api/json', body: { url: cleanUrl, vQuality: "1080", isAudioOnly: false } }
+                ];
+
+                for (const endpoint of apiEndpoints) {
+                    if (extractedVideoUrl) break;
+                    try {
+                        const response = await fetch(endpoint.url, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(endpoint.body)
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.status !== 'error' && data.url) {
+                                extractedVideoUrl = data.url;
+                            }
+                        }
+                    } catch (err) {
+                        console.warn(`API attempt failed (${endpoint.url}):`, err.message);
+                    }
+                }
+
+                // ==========================================
+                // STRATEGY 2: HTML Scraping via GET Proxy
+                // ==========================================
+                if (!extractedVideoUrl) {
+                    try {
+                        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(cleanUrl)}`;
+                        const response = await fetch(proxyUrl);
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            const html = data.contents;
+
+                            if (html) {
+                                // Extract via OpenGraph tags
+                                const ogMatch = html.match(/<meta[^>]*property="og:video"[^>]*content="([^"]+)"/i) || 
+                                                html.match(/<meta[^>]*property="og:video:secure_url"[^>]*content="([^"]+)"/i);
+                                
+                                if (ogMatch && ogMatch[1]) {
+                                    extractedVideoUrl = ogMatch[1].replace(/&amp;/g, '&');
+                                } else {
+                                    // Extract via hidden JSON state
+                                    const jsonMatch = html.match(/"video_versions"\s*:\s*\[[\s\S]*?"url"\s*:\s*"([^"]+)"/);
+                                    if (jsonMatch && jsonMatch[1]) {
+                                        extractedVideoUrl = jsonMatch[1].replace(/\\u0026/g, '&').replace(/\\\//g, '/');
+                                    }
+                                }
+
+                                // Try to grab real thumbnail and description
+                                const imgMatch = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i);
+                                if (imgMatch && imgMatch[1]) thumbnail = imgMatch[1].replace(/&amp;/g, '&');
+
+                                const descMatch = html.match(/<meta[^>]*property="og:description"[^>]*content="([^"]+)"/i);
+                                if (descMatch && descMatch[1]) description = descMatch[1].replace(/&amp;/g, '&').replace(/&quot;/g, '"');
+                            }
+                        }
+                    } catch (err) {
+                        console.warn("HTML Scrape fallback failed:", err.message);
+                    }
+                }
+
+                // ==========================================
+                // FINAL VALIDATION
+                // ==========================================
+                if (!extractedVideoUrl) {
+                    throw new Error("Failed to extract video. The post may be private, image-only, or blocked.");
+                }
+
+                // Extract Author Username
+                let author = '@username';
+                const authorMatch = cleanUrl.match(/@([a-zA-Z0-9_.-]+)/);
+                if (authorMatch && authorMatch[1]) {
+                    author = `@${authorMatch[1]}`;
+                }
+
+                showResult({
+                    author,
+                    thumbnail,
+                    videoUrlHD: extractedVideoUrl,
+                    description
+                });
+
+            } catch (err) {
+                console.error(err);
+                showError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        });
+    </script>
+</body>
+</html>
