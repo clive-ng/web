@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Scroll Morphing</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            /* Make the body very tall so we have room to scroll */
+            height: 1000vh; 
+            background-color: #f0f0f0;
+            font-family: sans-serif;
+        }
+
+        #svg-container {
+            /* Fix the SVG to the center of the screen */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vw;
+            max-width: 800px;
+            height: 80vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .scroll-indicator {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+    <script src="https://unpkg.com/flubber@0.4.2/build/flubber.min.js"></script>
+</head>
+<body>
+
+    <div class="scroll-indicator">Scroll Progress: <span id="progress-text">0%</span></div>
+
+    <div id="svg-container">
+        <svg id="main-svg" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+            </svg>
+    </div>
+
+    <script>
+        // List of your SVG files. 01 is added at the end to act as "09" (looping back)
+        const svgFiles = [
+            '01.svg', '02.svg', '03.svg', '04.svg', 
+            '05.svg', '06.svg', '07.svg', '08.svg', '01.svg' 
+        ];
+
+        let parsedSVGs = [];     // Will hold the path strings for each step
+        let interpolators = [];  // Will hold the Flubber morph functions
+
+        // 1. Fetch and extract paths from all SVGs
+        async function loadSVGs() {
+            for (let file of svgFiles) {
+                const response = await fetch(file);
+                const text = await response.text();
+                
+                // Parse the text into a temporary DOM element
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, "image/svg+xml");
+                
+                // Extract all path 'd' attributes
+                const paths = Array.from(doc.querySelectorAll('path')).map(p => p.getAttribute('d'));
+                parsedSVGs.push(paths);
+            }
+            setupInterpolators();
+        }
+
+        // 2. Setup the Flubber interpolators between each step
+        function setupInterpolators() {
+            const numSteps = parsedSVGs.length;
+            const numPaths = parsedSVGs[0].length; // Assuming all SVGs have the same number of paths
+
+            // Initialize the main SVG on screen with paths from 01.svg
+            const mainSvg = document.getElementById('main-svg');
+            for (let i = 0; i < numPaths; i++) {
+                const newPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                newPath.setAttribute('d', parsedSVGs[0][i]);
+                // Set default styling (adjust to match your SVG's actual styling)
+                newPath.setAttribute('fill', 'none'); 
+                newPath.setAttribute('stroke', '#1E88E5');
+                newPath.setAttribute('stroke-width', '2');
+                mainSvg.appendChild(newPath);
+            }
+
+            // Create interpolator functions for every path across every transition (01->02, 02->03, etc.)
+            for (let step = 0; step < numSteps - 1; step++) {
+                let stepInterpolators = [];
+                for (let pathIndex = 0; pathIndex < numPaths; pathIndex++) {
+                    const pathFrom = parsedSVGs[step][pathIndex];
+                    const pathTo = parsedSVGs[step + 1][pathIndex];
+                    
+                    // Flubber calculates the complex math required to morph the shapes smoothly
+                    stepInterpolators.push(flubber.interpolate(pathFrom, pathTo, { maxSegmentLength: 2 }));
+                }
+                interpolators.push(stepInterpolators);
+            }
+
+            // Start listening to scroll events now that everything is loaded
+            window.addEventListener('scroll', onScroll);
+        }
+
+        // 3. Handle the Scroll Event
+        function onScroll() {
+            // Calculate total scroll progress (0 to 1)
+            const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const totalProgress = scrollTop / scrollHeight;
+            
+            // Update indicator
+            document.getElementById('progress-text').innerText = Math.round(totalProgress * 100) + '%';
+
+            // Calculate which segment we are in (e.g., between 02.svg and 03.svg)
+            const numSegments = interpolators.length;
+            const rawSegmentProgress = totalProgress * numSegments;
+            
+            // Current segment index (0 to numSegments - 1)
+            let currentSegment = Math.floor(rawSegmentProgress);
+            if (currentSegment >= numSegments) currentSegment = numSegments - 1; // Clamp at the very bottom
+            
+            // Progress *within* the current segment (0.0 to 1.0)
+            let localProgress = rawSegmentProgress - currentSegment;
+            if (totalProgress === 1) localProgress = 1; // Ensure it finishes perfectly at the bottom
+
+            // Apply the morphing to each path
+            const pathsToUpdate = document.querySelectorAll('#main-svg path');
+            pathsToUpdate.forEach((pathElement, index) => {
+                // Get the morph string from Flubber and apply it
+                const newD = interpolators[currentSegment][index](localProgress);
+                pathElement.setAttribute('d', newD);
+            });
+        }
+
+        // Kick off the loading process
+        loadSVGs();
+    </script>
+</body>
+</html>
