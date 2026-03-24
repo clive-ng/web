@@ -3,149 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SVG Scroll Morphing</title>
+    <title>SVG Scroll Morphing - Robust</title>
     <style>
         body {
             margin: 0;
             padding: 0;
-            /* Make the body very tall so we have room to scroll */
-            height: 1000vh; 
-            background-color: #f0f0f0;
+            height: 1000vh; /* Scroll height */
+            background-color: #111; /* Dark background so lines pop */
             font-family: sans-serif;
+            color: white;
         }
 
         #svg-container {
-            /* Fix the SVG to the center of the screen */
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80vw;
-            max-width: 800px;
-            height: 80vh;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            pointer-events: none; /* Lets you click through it */
         }
 
         svg {
-            width: 100%;
-            height: 100%;
+            width: 80%;
+            height: 80%;
+            max-width: 800px;
             overflow: visible;
         }
 
-        .scroll-indicator {
+        /* Styling for the morphed SVG line */
+        #morph-path {
+            fill: none;
+            stroke: #00ffcc; /* Cyan stroke */
+            stroke-width: 3px;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* On-screen Debugger */
+        .debug-panel {
             position: fixed;
             top: 20px;
             left: 20px;
-            font-weight: bold;
-            color: #333;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            z-index: 100;
         }
     </style>
     <script src="https://unpkg.com/flubber@0.4.2/build/flubber.min.js"></script>
 </head>
 <body>
 
-    <div class="scroll-indicator">Scroll Progress: <span id="progress-text">0%</span></div>
+    <div class="debug-panel">
+        <div><strong>Scroll:</strong> <span id="progress-text">0%</span></div>
+        <div><strong>Status:</strong> <span id="status" style="color: #ffaa00;">Initializing...</span></div>
+    </div>
 
     <div id="svg-container">
         <svg id="main-svg" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
-            </svg>
+            <path id="morph-path" d=""></path>
+        </svg>
     </div>
 
     <script>
-        // List of your SVG files. 01 is added at the end to act as "09" (looping back)
+        // Array of your files
         const svgFiles = [
             '01.svg', '02.svg', '03.svg', '04.svg', 
-            '05.svg', '06.svg', '07.svg', '08.svg', '01.svg' 
+            '05.svg', '06.svg', '07.svg', '08.svg', '01.svg'
         ];
 
-        let parsedSVGs = [];     // Will hold the path strings for each step
-        let interpolators = [];  // Will hold the Flubber morph functions
+        let parsedSVGs = [];     
+        let interpolators = [];  
 
-        // 1. Fetch and extract paths from all SVGs
         async function loadSVGs() {
-            for (let file of svgFiles) {
-                const response = await fetch(file);
-                const text = await response.text();
-                
-                // Parse the text into a temporary DOM element
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(text, "image/svg+xml");
-                
-                // Extract all path 'd' attributes
-                const paths = Array.from(doc.querySelectorAll('path')).map(p => p.getAttribute('d'));
-                parsedSVGs.push(paths);
-            }
-            setupInterpolators();
-        }
+            try {
+                document.getElementById('status').innerText = "Loading SVG files...";
+                document.getElementById('status').style.color = "#ffaa00";
 
-        // 2. Setup the Flubber interpolators between each step
-        function setupInterpolators() {
-            const numSteps = parsedSVGs.length;
-            const numPaths = parsedSVGs[0].length; // Assuming all SVGs have the same number of paths
-
-            // Initialize the main SVG on screen with paths from 01.svg
-            const mainSvg = document.getElementById('main-svg');
-            for (let i = 0; i < numPaths; i++) {
-                const newPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                newPath.setAttribute('d', parsedSVGs[0][i]);
-                // Set default styling (adjust to match your SVG's actual styling)
-                newPath.setAttribute('fill', 'none'); 
-                newPath.setAttribute('stroke', '#1E88E5');
-                newPath.setAttribute('stroke-width', '2');
-                mainSvg.appendChild(newPath);
-            }
-
-            // Create interpolator functions for every path across every transition (01->02, 02->03, etc.)
-            for (let step = 0; step < numSteps - 1; step++) {
-                let stepInterpolators = [];
-                for (let pathIndex = 0; pathIndex < numPaths; pathIndex++) {
-                    const pathFrom = parsedSVGs[step][pathIndex];
-                    const pathTo = parsedSVGs[step + 1][pathIndex];
+                for (let file of svgFiles) {
+                    const response = await fetch(file);
                     
-                    // Flubber calculates the complex math required to morph the shapes smoothly
-                    stepInterpolators.push(flubber.interpolate(pathFrom, pathTo, { maxSegmentLength: 2 }));
-                }
-                interpolators.push(stepInterpolators);
-            }
+                    // Check if file actually exists on the server
+                    if (!response.ok) {
+                        throw new Error(`Could not find ${file}. Check file names and capitalization!`);
+                    }
+                    
+                    const text = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(text, "image/svg+xml");
+                    
+                    // Find ALL paths and combine their "d" attributes into one massive string
+                    const paths = Array.from(doc.querySelectorAll('path'));
+                    
+                    if (paths.length === 0) {
+                        throw new Error(`No <path> tags found in ${file}! You must convert shapes/strokes to paths in Illustrator.`);
+                    }
 
-            // Start listening to scroll events now that everything is loaded
-            window.addEventListener('scroll', onScroll);
+                    const combinedPath = paths.map(p => p.getAttribute('d')).join(' ');
+                    parsedSVGs.push(combinedPath);
+                }
+                
+                document.getElementById('status').innerText = "Calculating Morphs...";
+                setupInterpolators();
+
+            } catch (error) {
+                // Print exact error to the screen
+                document.getElementById('status').innerText = "Error: " + error.message;
+                document.getElementById('status').style.color = "#ff4444";
+                console.error(error);
+            }
         }
 
-        // 3. Handle the Scroll Event
+        function setupInterpolators() {
+            try {
+                // Set initial shape
+                document.getElementById('morph-path').setAttribute('d', parsedSVGs[0]);
+
+                // Create the Flubber transitions
+                for (let step = 0; step < parsedSVGs.length - 1; step++) {
+                    const morphFunc = flubber.interpolate(parsedSVGs[step], parsedSVGs[step + 1], { maxSegmentLength: 2 });
+                    interpolators.push(morphFunc);
+                }
+
+                // Success!
+                document.getElementById('status').innerText = "Ready! Scroll down.";
+                document.getElementById('status').style.color = "#00ffcc";
+                
+                window.addEventListener('scroll', onScroll);
+            } catch (error) {
+                document.getElementById('status').innerText = "Morph Math Failed (Check Console)";
+                document.getElementById('status').style.color = "#ff4444";
+                console.error("Flubber encountered bad path data:", error);
+            }
+        }
+
         function onScroll() {
-            // Calculate total scroll progress (0 to 1)
             const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
             const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const totalProgress = scrollTop / scrollHeight;
             
-            // Update indicator
+            // Prevent dividing by zero if page can't scroll
+            if (scrollHeight <= 0) return; 
+
+            const totalProgress = Math.min(1, Math.max(0, scrollTop / scrollHeight));
             document.getElementById('progress-text').innerText = Math.round(totalProgress * 100) + '%';
 
-            // Calculate which segment we are in (e.g., between 02.svg and 03.svg)
             const numSegments = interpolators.length;
             const rawSegmentProgress = totalProgress * numSegments;
             
-            // Current segment index (0 to numSegments - 1)
             let currentSegment = Math.floor(rawSegmentProgress);
-            if (currentSegment >= numSegments) currentSegment = numSegments - 1; // Clamp at the very bottom
+            if (currentSegment >= numSegments) currentSegment = numSegments - 1; 
             
-            // Progress *within* the current segment (0.0 to 1.0)
             let localProgress = rawSegmentProgress - currentSegment;
-            if (totalProgress === 1) localProgress = 1; // Ensure it finishes perfectly at the bottom
+            if (totalProgress === 1) localProgress = 1;
 
-            // Apply the morphing to each path
-            const pathsToUpdate = document.querySelectorAll('#main-svg path');
-            pathsToUpdate.forEach((pathElement, index) => {
-                // Get the morph string from Flubber and apply it
-                const newD = interpolators[currentSegment][index](localProgress);
-                pathElement.setAttribute('d', newD);
-            });
+            // Apply the new path data
+            const newD = interpolators[currentSegment](localProgress);
+            document.getElementById('morph-path').setAttribute('d', newD);
         }
 
-        // Kick off the loading process
+        // Start the process
         loadSVGs();
     </script>
 </body>
