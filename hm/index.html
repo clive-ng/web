@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll Sequence | Reverse Start Ping-Pong</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            /* 600vh makes it feel slower and more controlled */
+            height: 600vh;
+            overflow-x: hidden;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ffffff;
+        }
+
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        #loader {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: sans-serif;
+            font-size: 14px;
+            letter-spacing: 1px;
+            color: #888;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">LOADING SEQUENCE...</div>
+
+    <div id="canvas-container">
+        <canvas id="sequence-canvas"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('sequence-canvas');
+        const context = canvas.getContext('2d');
+        const loader = document.getElementById('loader');
+
+        const frameCount = 106; 
+        const images = [];
+        
+        const getFrameUrl = index => 
+            `ezgif-frame-${(index + 1).toString().padStart(3, '0')}.png`;
+
+        const preloadImages = () => {
+            const promises = [];
+            for (let i = 0; i < frameCount; i++) {
+                promises.push(new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => { images[i] = img; resolve(); };
+                    img.onerror = () => resolve(); 
+                    img.src = getFrameUrl(i);
+                }));
+            }
+            return Promise.all(promises);
+        };
+
+        const render = (index) => {
+            const img = images[index];
+            if (!img) return;
+
+            if (canvas.width !== img.width || canvas.height !== img.height) {
+                canvas.width = img.width;
+                canvas.height = img.height;
+            }
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(img, 0, 0);
+        };
+
+        const handleScroll = () => {
+            const scrollTop = window.scrollY;
+            const maxScrollTop = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollFraction = scrollTop / maxScrollTop;
+
+            const maxIndex = frameCount - 1; // 105
+            const totalSteps = maxIndex * 2; // 210
+            
+            const step = Math.floor(scrollFraction * totalSteps);
+
+            let frameIndex;
+            
+            /** * MODIFIED LOGIC:
+             * We want: 105 -> 0 (Reverse) then 0 -> 105 (Forward)
+             */
+            if (step <= maxIndex) {
+                // First half of scroll: Start at 105 and subtract step
+                frameIndex = maxIndex - step;
+            } else {
+                // Second half of scroll: Start at 0 and add the excess
+                frameIndex = step - maxIndex;
+            }
+
+            // Safety clamp
+            frameIndex = Math.max(0, Math.min(maxIndex, frameIndex));
+
+            requestAnimationFrame(() => render(frameIndex));
+        };
+
+        preloadImages().then(() => {
+            loader.style.display = 'none';
+            // Start at the last frame (105) instead of 0
+            render(frameCount - 1); 
+            window.addEventListener('scroll', handleScroll, { passive: true });
+        });
+    </script>
+</body>
+</html>
