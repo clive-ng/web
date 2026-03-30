@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--  Last Published: Mon Mar 30 2026 11:56:59 GMT+0000 (Coordinated Universal Time)  -->
+<!DOCTYPE html><!--  Last Published: Mon Mar 30 2026 22:15:33 GMT+0000 (Coordinated Universal Time)  -->
 <html data-wf-page="69ca59bec688d9c8fa07ce41" data-wf-site="69ca59bec688d9c8fa07ce44">
 <head>
   <meta charset="utf-8">
@@ -47,6 +47,47 @@
   pointer-events: auto;
 }
 </style>
+  <style>
+.iframe-popup-wrapper {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(5px); /* Adds a nice modern touch */
+}
+.iframe-container {
+  width: 90%;
+  height: 80%;
+  max-width: 1200px;
+  background: #000;
+  position: relative;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.iframe-container iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+.close-iframe {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  color: white;
+  font-size: 30px;
+  cursor: pointer;
+  z-index: 10001;
+  font-family: sans-serif;
+  line-height: 1;
+}
+</style>
 </head>
 <body class="body">
   <section class="menu">
@@ -92,51 +133,51 @@
               <div style="padding-top:56.17021276595745%" class="video-7 w-video w-embed"><iframe class="embedly-embed" src="https://cdn.embedly.com/widgets/media.html?src=https%3A%2F%2Fwww.youtube.com%2Fembed%2FIbiCRxWCHfQ%3Ffeature%3Doembed&display_name=YouTube&url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DIbiCRxWCHfQ&image=https%3A%2F%2Fi.ytimg.com%2Fvi%2FIbiCRxWCHfQ%2Fhqdefault.jpg&type=text%2Fhtml&schema=youtube" width="940" height="528" scrolling="no" allowfullscreen="" title="MA Studio 2 (2025)"></iframe></div>
             </div>
             <div id="pop-image" class="w-layout-grid project-description-grid-3">
-              <a href="#" target="_blank" class="linkblock w-inline-block"><img src="images/vrproject.jpeg" loading="lazy" sizes="(max-width: 4032px) 100vw, 4032px" srcset="images/vrproject-p-500.jpeg 500w, images/vrproject-p-800.jpeg 800w, images/vrproject-p-1080.jpeg 1080w, images/vrproject-p-1600.jpeg 1600w, images/vrproject-p-2000.jpeg 2000w, images/vrproject-p-2600.jpeg 2600w, images/vrproject-p-3200.jpeg 3200w, images/vrproject.jpeg 4032w" alt="" class="image-72">
+              <a href="#" target="_blank" class="linkblock w-inline-block"><img src="images/vrproject.jpeg" loading="lazy" alt="" class="image-72">
                 <div class="bodytext-3"><span>warm up AR campus map project</span></div>
               </a>
-              <a id="pop-image" href="#" target="_blank" class="linkblock w-node-_2de2104e-1c7a-c6b6-2bc7-030d2ae81bd8-fa07ce41 w-inline-block"><img src="images/studnetsharing.jpeg" loading="lazy" sizes="(max-width: 4032px) 100vw, 4032px" srcset="images/studnetsharing-p-500.jpeg 500w, images/studnetsharing-p-800.jpeg 800w, images/studnetsharing-p-1080.jpeg 1080w, images/studnetsharing-p-1600.jpeg 1600w, images/studnetsharing-p-2000.jpeg 2000w, images/studnetsharing-p-2600.jpeg 2600w, images/studnetsharing-p-3200.jpeg 3200w, images/studnetsharing.jpeg 4032w" alt="">
+              <a id="pop-image" href="#" target="_blank" class="linkblock w-node-_2de2104e-1c7a-c6b6-2bc7-030d2ae81bd8-fa07ce41 w-inline-block"><img src="images/studnetsharing.jpeg" loading="lazy" alt="">
                 <div class="bodytext-3"><span>alumni project sharing</span></div>
               </a>
-              <a id="w-node-_2de2104e-1c7a-c6b6-2bc7-030d2ae81bdd-fa07ce41" href="#" target="_blank" class="linkblock w-inline-block"><img src="images/guest-lecturer.jpeg" loading="lazy" sizes="(max-width: 4032px) 100vw, 4032px" srcset="images/guest-lecturer-p-500.jpeg 500w, images/guest-lecturer-p-800.jpeg 800w, images/guest-lecturer-p-1080.jpeg 1080w, images/guest-lecturer-p-1600.jpeg 1600w, images/guest-lecturer-p-2000.jpeg 2000w, images/guest-lecturer-p-2600.jpeg 2600w, images/guest-lecturer-p-3200.jpeg 3200w, images/guest-lecturer.jpeg 4032w" alt="">
+              <a id="w-node-_2de2104e-1c7a-c6b6-2bc7-030d2ae81bdd-fa07ce41" href="#" target="_blank" class="linkblock w-inline-block"><img src="images/guest-lecturer.jpeg" loading="lazy" alt="">
                 <div class="bodytext-3">talk by Christian@parallel.systems</div>
               </a>
-              <a id="w-node-_2de2104e-1c7a-c6b6-2bc7-030d2ae81be1-fa07ce41" href="#" target="_blank" class="linkblock w-inline-block"><img src="images/ideation.jpeg" loading="lazy" sizes="(max-width: 4032px) 100vw, 4032px" srcset="images/ideation-p-500.jpeg 500w, images/ideation-p-800.jpeg 800w, images/ideation-p-1080.jpeg 1080w, images/ideation-p-1600.jpeg 1600w, images/ideation-p-2000.jpeg 2000w, images/ideation-p-2600.jpeg 2600w, images/ideation-p-3200.jpeg 3200w, images/ideation.jpeg 4032w" alt="">
+              <a id="w-node-_2de2104e-1c7a-c6b6-2bc7-030d2ae81be1-fa07ce41" href="#" target="_blank" class="linkblock w-inline-block"><img src="images/ideation.jpeg" loading="lazy" alt="">
                 <div class="bodytext-3">affinity diagram analysis</div>
               </a>
-              <a id="w-node-_2de2104e-1c7a-c6b6-2bc7-030d2ae81be5-fa07ce41" href="#" target="_blank" class="linkblock w-inline-block"><img src="images/coding2.jpeg" loading="lazy" sizes="(max-width: 4032px) 100vw, 4032px" srcset="images/coding2-p-500.jpeg 500w, images/coding2-p-800.jpeg 800w, images/coding2-p-1080.jpeg 1080w, images/coding2-p-1600.jpeg 1600w, images/coding2-p-2000.jpeg 2000w, images/coding2-p-2600.jpeg 2600w, images/coding2-p-3200.jpeg 3200w, images/coding2.jpeg 4032w" alt="">
+              <a id="w-node-_2de2104e-1c7a-c6b6-2bc7-030d2ae81be5-fa07ce41" href="#" target="_blank" class="linkblock w-inline-block"><img src="images/coding2.jpeg" loading="lazy" alt="">
                 <div class="bodytext-3">creative coding expereimnt</div>
               </a>
-              <a id="w-node-_2de2104e-1c7a-c6b6-2bc7-030d2ae81be9-fa07ce41" href="#" target="_blank" class="linkblock w-inline-block"><img src="images/1presentation.jpeg" loading="lazy" sizes="(max-width: 4032px) 100vw, 4032px" srcset="images/1presentation-p-500.jpeg 500w, images/1presentation-p-800.jpeg 800w, images/1presentation-p-1080.jpeg 1080w, images/1presentation-p-1600.jpeg 1600w, images/1presentation-p-2000.jpeg 2000w, images/1presentation-p-2600.jpeg 2600w, images/1presentation-p-3200.jpeg 3200w, images/1presentation.jpeg 4032w" alt="">
+              <a id="w-node-_2de2104e-1c7a-c6b6-2bc7-030d2ae81be9-fa07ce41" href="#" target="_blank" class="linkblock w-inline-block"><img src="images/1presentation.jpeg" loading="lazy" alt="">
                 <div class="bodytext-3">UX Design project for the iF Design Award</div>
               </a>
             </div>
             <div class="code-embed-8 w-embed w-iframe"><iframe src="https://sarahshah18-gif.github.io/Elementary-A-Digital-Reader/" width="100%" height="800" style="border:none;">
-              </iframe></div><img src="images/Sarah_DnAD04.jpg" loading="lazy" alt=""><img src="images/Sarah_iF02.jpg" loading="lazy" sizes="100vw" srcset="images/Sarah_iF02-p-500.jpg 500w, images/Sarah_iF02-p-800.jpg 800w, images/Sarah_iF02-p-1080.jpg 1080w, images/Sarah_iF02-p-1600.jpg 1600w, images/Sarah_iF02-p-2000.jpg 2000w, images/Sarah_iF02-p-2600.jpg 2600w, images/Sarah_iF02-p-3200.jpg 3200w, images/Sarah_iF02.jpg 4107w" alt="">
+              </iframe></div><img src="images/Sarah_DnAD04.jpg" loading="lazy" sizes="(max-width: 1920px) 100vw, 1920px" srcset="images/Sarah_DnAD04-p-500.jpg 500w, images/Sarah_DnAD04-p-800.jpg 800w, images/Sarah_DnAD04-p-1080.jpg 1080w, images/Sarah_DnAD04-p-1600.jpg 1600w, images/Sarah_DnAD04.jpg 1920w" alt=""><img src="images/Sarah_iF02.jpg" loading="lazy" sizes="100vw" srcset="images/Sarah_iF02-p-500.jpg 500w, images/Sarah_iF02-p-800.jpg 800w, images/Sarah_iF02-p-1080.jpg 1080w, images/Sarah_iF02-p-1600.jpg 1600w, images/Sarah_iF02-p-2000.jpg 2000w, images/Sarah_iF02-p-2600.jpg 2600w, images/Sarah_iF02-p-3200.jpg 3200w, images/Sarah_iF02.jpg 4107w" alt="">
           </div>
         </div>
         <div class="slide w-slide">
           <div id="pop-image" class="div-block-30 playground">
-            <div class="bodytext-3">MA Studio 2: Condensed Narrative Project 2024<br>‍<br>We live in an age of hyper content, in which complex narratives and storylines are compressed into mere moments for social media. Your brief is to compress your favourite book, film, play or videogame into a 15 second piece.You cannot use any of the original content. How can you communicate the book, film, play or videogame without its words, images, sounds, etc ?You could try to convey its emotions, or narrative arc or rhythms, for example — we want you to explore unique ways to retell the story.Can you bring the story to life using abstraction, reinterpretation,and symbolism in 15 seconds ? You should explore experimental approaches, pushing your creative and technical limits.<br></div><img src="images/time.png" loading="lazy" alt="">
+            <div class="bodytext-3">MA Studio 2: Condensed Narrative Project 2024<br>‍<br>We live in an age of hyper content, in which complex narratives and storylines are compressed into mere moments for social media. Your brief is to compress your favourite book, film, play or videogame into a 15 second piece.You cannot use any of the original content. How can you communicate the book, film, play or videogame without its words, images, sounds, etc ?You could try to convey its emotions, or narrative arc or rhythms, for example — we want you to explore unique ways to retell the story.Can you bring the story to life using abstraction, reinterpretation,and symbolism in 15 seconds ? You should explore experimental approaches, pushing your creative and technical limits.<br></div><img src="images/time.png" loading="lazy" sizes="100vw" srcset="images/time-p-500.png 500w, images/time-p-800.png 800w, images/time-p-1080.png 1080w, images/time-p-1600.png 1600w, images/time-p-2000.png 2000w, images/time-p-2600.png 2600w, images/time-p-3200.png 3200w, images/time.png 3928w" alt="">
             <div class="code-embed-9 w-embed w-iframe"><iframe src="https://transcendence09.github.io/coinage/index.html" width="100%" height="800" style="border:none;">
               </iframe></div>
             <div class="w-layout-grid project-description-grid-4">
-              <a id="pop-image" href="#" target="_blank" class="linkblock w-node-_3d973809-9bb8-2105-5849-309de6a51c0e-fa07ce41 w-inline-block"><img src="images/IMG_2921.jpeg" loading="lazy" sizes="(max-width: 4032px) 100vw, 4032px" srcset="images/IMG_2921-p-500.jpeg 500w, images/IMG_2921-p-800.jpeg 800w, images/IMG_2921-p-1080.jpeg 1080w, images/IMG_2921-p-1600.jpeg 1600w, images/IMG_2921-p-2000.jpeg 2000w, images/IMG_2921-p-2600.jpeg 2600w, images/IMG_2921-p-3200.jpeg 3200w, images/IMG_2921.jpeg 4032w" alt="">
+              <a id="pop-image" href="#" target="_blank" class="linkblock w-node-_3d973809-9bb8-2105-5849-309de6a51c0e-fa07ce41 w-inline-block"><img src="images/IMG_2921.jpeg" loading="lazy" alt="">
                 <div class="bodytext-3">talk by Christian@parallel.systems</div>
               </a>
-              <a id="pop-image" href="#" target="_blank" class="linkblock w-node-_3d973809-9bb8-2105-5849-309de6a51c12-fa07ce41 w-inline-block"><img src="images/IMG_2933.jpeg" loading="lazy" sizes="(max-width: 4032px) 100vw, 4032px" srcset="images/IMG_2933-p-500.jpeg 500w, images/IMG_2933-p-800.jpeg 800w, images/IMG_2933-p-1080.jpeg 1080w, images/IMG_2933-p-1600.jpeg 1600w, images/IMG_2933-p-2000.jpeg 2000w, images/IMG_2933-p-2600.jpeg 2600w, images/IMG_2933-p-3200.jpeg 3200w, images/IMG_2933.jpeg 4032w" alt="">
+              <a id="pop-image" href="#" target="_blank" class="linkblock w-node-_3d973809-9bb8-2105-5849-309de6a51c12-fa07ce41 w-inline-block"><img src="images/IMG_2933.jpeg" loading="lazy" alt="">
                 <div class="bodytext-3">VR Studio</div>
               </a>
-              <a id="w-node-_3d973809-9bb8-2105-5849-309de6a51c16-fa07ce41" href="#" target="_blank" class="linkblock w-inline-block"><img src="images/IMG_2852.jpeg" loading="lazy" sizes="(max-width: 4032px) 100vw, 4032px, 100vw" srcset="images/IMG_2852-p-500.jpeg 500w, images/IMG_2852-p-800.jpeg 800w, images/IMG_2852-p-1080.jpeg 1080w, images/IMG_2852-p-1600.jpeg 1600w, images/IMG_2852-p-2000.jpeg 2000w, images/IMG_2852-p-2600.jpeg 2600w, images/IMG_2852-p-3200.jpeg 3200w, images/IMG_2852.jpeg 4032w" alt="" id="pop-image">
+              <a id="w-node-_3d973809-9bb8-2105-5849-309de6a51c16-fa07ce41" href="#" target="_blank" class="linkblock w-inline-block"><img src="images/IMG_2852.jpeg" loading="lazy" sizes="100vw" srcset="images/IMG_2852-p-500.jpeg 500w, images/IMG_2852-p-800.jpeg 800w, images/IMG_2852-p-1080.jpeg 1080w, images/IMG_2852-p-1600.jpeg 1600w, images/IMG_2852-p-2000.jpeg 2000w, images/IMG_2852-p-2600.jpeg 2600w, images/IMG_2852-p-3200.jpeg 3200w, images/IMG_2852.jpeg 4032w" alt="" id="pop-image">
                 <div class="bodytext-3">UX Research talk</div>
               </a>
-              <a id="w-node-_3d973809-9bb8-2105-5849-309de6a51c1a-fa07ce41" href="#" target="_blank" class="linkblock w-inline-block"><img src="images/Screenshot-2026-03-29-at-17.48.09.png" loading="lazy" sizes="(max-width: 1858px) 100vw, 1858px" srcset="images/Screenshot-2026-03-29-at-17.48.09-p-500.png 500w, images/Screenshot-2026-03-29-at-17.48.09-p-800.png 800w, images/Screenshot-2026-03-29-at-17.48.09-p-1080.png 1080w, images/Screenshot-2026-03-29-at-17.48.09-p-1600.png 1600w, images/Screenshot-2026-03-29-at-17.48.09.png 1858w" alt="" id="pop-image">
+              <a id="w-node-_3d973809-9bb8-2105-5849-309de6a51c1a-fa07ce41" href="#" target="_blank" class="linkblock w-inline-block"><img src="images/Screenshot-2026-03-29-at-17.48.09.png" loading="lazy" id="pop-image" alt="">
                 <div class="bodytext-3">AEIOU observation</div>
               </a>
-              <a id="w-node-_3d973809-9bb8-2105-5849-309de6a51c1e-fa07ce41" href="#" target="_blank" class="linkblock w-inline-block"><img src="images/Screenshot-2026-03-29-at-17.52.37.png" loading="lazy" sizes="(max-width: 1896px) 100vw, 1896px" srcset="images/Screenshot-2026-03-29-at-17.52.37-p-500.png 500w, images/Screenshot-2026-03-29-at-17.52.37-p-800.png 800w, images/Screenshot-2026-03-29-at-17.52.37-p-1080.png 1080w, images/Screenshot-2026-03-29-at-17.52.37-p-1600.png 1600w, images/Screenshot-2026-03-29-at-17.52.37.png 1896w" alt="" id="pop-image">
+              <a id="w-node-_3d973809-9bb8-2105-5849-309de6a51c1e-fa07ce41" href="#" target="_blank" class="linkblock w-inline-block"><img src="images/Screenshot-2026-03-29-at-17.52.37.png" loading="lazy" id="pop-image" alt="">
                 <div class="bodytext-3">VR interface</div>
               </a>
-              <a id="w-node-_3d973809-9bb8-2105-5849-309de6a51c22-fa07ce41" href="#" target="_blank" class="linkblock w-inline-block"><img src="images/Screenshot-2026-03-29-at-17.57.29.png" loading="lazy" sizes="(max-width: 2090px) 100vw, 2090px, 100vw" srcset="images/Screenshot-2026-03-29-at-17.57.29-p-500.png 500w, images/Screenshot-2026-03-29-at-17.57.29-p-800.png 800w, images/Screenshot-2026-03-29-at-17.57.29-p-1080.png 1080w, images/Screenshot-2026-03-29-at-17.57.29-p-1600.png 1600w, images/Screenshot-2026-03-29-at-17.57.29-p-2000.png 2000w, images/Screenshot-2026-03-29-at-17.57.29.png 2090w" alt="" id="pop-image">
+              <a id="w-node-_3d973809-9bb8-2105-5849-309de6a51c22-fa07ce41" href="#" target="_blank" class="linkblock w-inline-block"><img src="images/Screenshot-2026-03-29-at-17.57.29.png" loading="lazy" sizes="100vw" srcset="images/Screenshot-2026-03-29-at-17.57.29-p-500.png 500w, images/Screenshot-2026-03-29-at-17.57.29-p-800.png 800w, images/Screenshot-2026-03-29-at-17.57.29-p-1080.png 1080w, images/Screenshot-2026-03-29-at-17.57.29-p-1600.png 1600w, images/Screenshot-2026-03-29-at-17.57.29-p-2000.png 2000w, images/Screenshot-2026-03-29-at-17.57.29.png 2090w" alt="" id="pop-image">
                 <div class="bodytext-3">Web 3D interaction</div>
               </a>
             </div>
@@ -147,14 +188,14 @@
         </div>
         <div class="slide w-slide">
           <div class="div-block playground">
-            <div class="bodytext">Designing a graphic information system for Art Museum of the Chinese University of Hong Kong<br>‍<br>Messages delivered in public spaces settings like museums, zoos and shopping malls require the voluntary cooperation of potential &quot;receivers&quot; while they are surrounded by distractions and choices. Visitors do not have to pay attention but are free to attend, ignore, or distort the messages being communicated. In such situations, it is immensely important to design information systems that not only reflect the needs and characteristics of audiences but also attract and hold their attention (Screven 1990). During the summer holidays, we contacted the Chinese University of Hong Kong and learned that they would be updating their orientation system. As the different structures were built in different eras, the Art Museum of the Chinese University of Hong Kong is looking for proposals to update the orientation system.All participants receive theoretical knowledge and simulation experiences over a period of four weeks. During this phase participants will have the opportunity to apply your knowledge of user-centred research to the environment. User research and user testing will be key elements of this phase, where all participants will be required to submit documentation of user testing and a different set of way finding prototypes.<br></div><img sizes="(max-width: 1600px) 100vw, 1600px, 100vw" srcset="images/image-p-500.png 500w, images/image-p-800.png 800w, images/image-p-1080.png 1080w, images/image.png 1600w" alt="" src="images/image.png" loading="lazy" class="image-10">
+            <div class="bodytext">Designing a graphic information system for Art Museum of the Chinese University of Hong Kong<br>‍<br>Messages delivered in public spaces settings like museums, zoos and shopping malls require the voluntary cooperation of potential &quot;receivers&quot; while they are surrounded by distractions and choices. Visitors do not have to pay attention but are free to attend, ignore, or distort the messages being communicated. In such situations, it is immensely important to design information systems that not only reflect the needs and characteristics of audiences but also attract and hold their attention (Screven 1990). During the summer holidays, we contacted the Chinese University of Hong Kong and learned that they would be updating their orientation system. As the different structures were built in different eras, the Art Museum of the Chinese University of Hong Kong is looking for proposals to update the orientation system.All participants receive theoretical knowledge and simulation experiences over a period of four weeks. During this phase participants will have the opportunity to apply your knowledge of user-centred research to the environment. User research and user testing will be key elements of this phase, where all participants will be required to submit documentation of user testing and a different set of way finding prototypes.<br></div><img sizes="100vw" srcset="images/image-p-500.png 500w, images/image-p-800.png 800w, images/image-p-1080.png 1080w, images/image.png 1600w" alt="" src="images/image.png" loading="lazy" class="image-10">
             <div class="w-layout-grid project-description-grid">
-              <a id="w-node-_1cc4bca3-4226-20b7-34dd-40229acf7ded-fa07ce41" href="https://www.sdclive.org/design/publication#h.bnjut32bofr5" target="_blank" class="w-inline-block"><img width="Auto" height="Auto" alt="" src="images/image-2_2.png" loading="lazy" srcset="images/image-2_2-p-500.png 500w, images/image-2_2-p-800.png 800w, images/image-2_2-p-1080.png 1080w, images/image-2_2.png 1600w" sizes="(max-width: 1600px) 100vw, 1600px, 100vw"></a>
+              <a id="w-node-_1cc4bca3-4226-20b7-34dd-40229acf7ded-fa07ce41" href="https://www.sdclive.org/design/publication#h.bnjut32bofr5" target="_blank" class="w-inline-block"><img width="Auto" height="Auto" alt="" src="images/image-2_2.png" loading="lazy" srcset="images/image-2_2-p-500.png 500w, images/image-2_2-p-800.png 800w, images/image-2_2-p-1080.png 1080w, images/image-2_2.png 1600w" sizes="100vw"></a>
               <a href="https://www.sdclive.org/research/festival-of-hk" target="_blank" class="link-block-12 w-inline-block"></a>
-              <a id="w-node-_1cc4bca3-4226-20b7-34dd-40229acf7df0-fa07ce41" href="https://www.sdclive.org/design/publication#h.9cmw0wgwafxs" target="_blank" class="w-inline-block"><img sizes="(max-width: 1600px) 100vw, 1600px, 100vw" srcset="images/image-3_3-p-500.png 500w, images/image-3_3-p-800.png 800w, images/image-3_3-p-1080.png 1080w, images/image-3_3.png 1600w" alt="" src="images/image-3_3.png" loading="lazy"></a>
-              <a id="w-node-_1cc4bca3-4226-20b7-34dd-40229acf7df2-fa07ce41" href="https://www.sdclive.org/design/publication#h.5onc53iwzss3" target="_blank" class="w-inline-block"><img sizes="(max-width: 1600px) 100vw, 1600px, 100vw" srcset="images/image-4_2-p-500.png 500w, images/image-4_2-p-800.png 800w, images/image-4_2-p-1080.png 1080w, images/image-4_2.png 1600w" alt="" src="images/image-4_2.png" loading="lazy"></a>
-              <a id="w-node-_1cc4bca3-4226-20b7-34dd-40229acf7df4-fa07ce41" href="https://www.sdclive.org/design/publication#h.e93pjj4rxved" target="_blank" class="w-inline-block"><img sizes="(max-width: 1600px) 100vw, 1600px, 100vw" srcset="images/image-5_2-p-500.png 500w, images/image-5_2-p-800.png 800w, images/image-5_2-p-1080.png 1080w, images/image-5_2.png 1600w" alt="" src="images/image-5_2.png" loading="lazy"></a>
-              <a id="w-node-_1cc4bca3-4226-20b7-34dd-40229acf7df6-fa07ce41" href="https://www.sdclive.org/design/publication#h.4kguu3766vbi" target="_blank" class="w-inline-block"><img sizes="(max-width: 1600px) 100vw, 1600px, 100vw" srcset="images/image-6_1-p-500.png 500w, images/image-6_1-p-800.png 800w, images/image-6_1-p-1080.png 1080w, images/image-6_1.png 1600w" alt="" src="images/image-6_1.png" loading="lazy"></a>
+              <a id="w-node-_1cc4bca3-4226-20b7-34dd-40229acf7df0-fa07ce41" href="https://www.sdclive.org/design/publication#h.9cmw0wgwafxs" target="_blank" class="w-inline-block"><img sizes="100vw" srcset="images/image-3_3-p-500.png 500w, images/image-3_3-p-800.png 800w, images/image-3_3-p-1080.png 1080w, images/image-3_3.png 1600w" alt="" src="images/image-3_3.png" loading="lazy"></a>
+              <a id="w-node-_1cc4bca3-4226-20b7-34dd-40229acf7df2-fa07ce41" href="https://www.sdclive.org/design/publication#h.5onc53iwzss3" target="_blank" class="w-inline-block"><img sizes="100vw" srcset="images/image-4_2-p-500.png 500w, images/image-4_2-p-800.png 800w, images/image-4_2-p-1080.png 1080w, images/image-4_2.png 1600w" alt="" src="images/image-4_2.png" loading="lazy"></a>
+              <a id="w-node-_1cc4bca3-4226-20b7-34dd-40229acf7df4-fa07ce41" href="https://www.sdclive.org/design/publication#h.e93pjj4rxved" target="_blank" class="w-inline-block"><img sizes="100vw" srcset="images/image-5_2-p-500.png 500w, images/image-5_2-p-800.png 800w, images/image-5_2-p-1080.png 1080w, images/image-5_2.png 1600w" alt="" src="images/image-5_2.png" loading="lazy"></a>
+              <a id="w-node-_1cc4bca3-4226-20b7-34dd-40229acf7df6-fa07ce41" href="https://www.sdclive.org/design/publication#h.4kguu3766vbi" target="_blank" class="w-inline-block"><img sizes="100vw" srcset="images/image-6_1-p-500.png 500w, images/image-6_1-p-800.png 800w, images/image-6_1-p-1080.png 1080w, images/image-6_1.png 1600w" alt="" src="images/image-6_1.png" loading="lazy"></a>
             </div>
             <div class="div-block-10">
               <div style="padding-top:56.17021276595745%" class="video-3 w-video w-embed"><iframe class="embedly-embed" src="https://cdn.embedly.com/widgets/media.html?src=https%3A%2F%2Fwww.youtube.com%2Fembed%2FM7T_ivFXe-8&display_name=YouTube&url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DM7T_ivFXe-8&image=http%3A%2F%2Fi.ytimg.com%2Fvi%2FM7T_ivFXe-8%2Fhqdefault.jpg&type=text%2Fhtml&schema=youtube" width="940" height="528" scrolling="no" title="YouTube embed" frameborder="0" allow="autoplay; fullscreen; encrypted-media; picture-in-picture;" allowfullscreen="true"></iframe></div>
@@ -261,6 +302,47 @@ document.addEventListener("DOMContentLoaded", function() {
         });
       }
     });
+  }
+});
+</script>
+  <script>
+document.addEventListener("DOMContentLoaded", function() {
+  const restrictedDomains = ["polyu.edu.hk", "google.com"];
+  document.addEventListener('click', function(e) {
+    const trigger = e.target.closest('#iframe-trigger') || e.target.closest('.js-popup-link');
+    if (!trigger) return;
+    const targetUrl = trigger.getAttribute('data-url') || trigger.getAttribute('href');
+    if (!targetUrl || targetUrl === "#") return;
+    // Check if site is restricted
+    const isRestricted = restrictedDomains.some(domain => targetUrl.includes(domain));
+    if (isRestricted) {
+      window.open(targetUrl, '_blank');
+      return;
+    }
+    e.preventDefault();
+    // GET CUSTOM SIZES (or use defaults)
+    const customWidth = trigger.getAttribute('data-width') || "90%";
+    const customHeight = trigger.getAttribute('data-height') || "85%";
+    openIframePopup(targetUrl, customWidth, customHeight);
+  });
+  function openIframePopup(url, w, h) {
+    const wrapper = document.createElement('div');
+    Object.assign(wrapper.style, {
+      display: 'flex', position: 'fixed', top: '0', left: '0',
+      width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.9)',
+      zIndex: '99999', justifyContent: 'center', alignItems: 'center'
+    });
+    // We apply the custom 'w' and 'h' here
+    wrapper.innerHTML = `
+      <div class="close-popup" style="position:absolute; top:20px; right:30px; color:white; font-size:40px; cursor:pointer;">&times;</div>
+      <div style="width:${w}; height:${h}; background:white; border-radius:10px; overflow:hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+        <iframe src="${url}" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>
+      </div>
+    `;
+    document.body.appendChild(wrapper);
+    wrapper.onclick = (event) => {
+      if (event.target === wrapper || event.target.className === 'close-popup') wrapper.remove();
+    };
   }
 });
 </script>
