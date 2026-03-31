@@ -297,6 +297,7 @@ img {
 }
 
 .div-block-5 {
+  cursor: pointer;
   background-image: url('../images/1440.jpg');
   background-position: 0 0;
   background-repeat: no-repeat;
@@ -346,8 +347,12 @@ img {
 .project-description-grid.three {
   grid-row-gap: 30px;
   grid-template-rows: auto auto;
-  margin-top: 30px;
-  margin-bottom: 30px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.project-description-grid.three.re {
+  margin-top: 0;
 }
 
 .project-description-grid.pop-image-grid {
@@ -418,6 +423,7 @@ img {
 }
 
 .image-10 {
+  cursor: auto;
   width: 100vw;
   margin-top: 30px;
   margin-bottom: 0;
@@ -1263,6 +1269,14 @@ img {
   margin-top: auto;
 }
 
+.image-73 {
+  cursor: pointer;
+}
+
+.image-74 {
+  cursor: zoom-in;
+}
+
 @media screen and (max-width: 991px) {
   .heading-jumbo {
     font-size: 56px;
@@ -1606,7 +1620,7 @@ img {
   }
 }
 
-#w-node-_8d2829b6-688d-c5ed-131e-c7a183e8f31f-fa07ce3f, #w-node-_8d2829b6-688d-c5ed-131e-c7a183e8f324-fa07ce3f, #w-node-_8d2829b6-688d-c5ed-131e-c7a183e8f329-fa07ce3f, #w-node-_8d2829b6-688d-c5ed-131e-c7a183e8f32a-fa07ce3f, #w-node-_8d2829b6-688d-c5ed-131e-c7a183e8f32e-fa07ce3f, #w-node-_8d2829b6-688d-c5ed-131e-c7a183e8f32f-fa07ce3f, #w-node-_8d2829b6-688d-c5ed-131e-c7a183e8f332-fa07ce3f, #w-node-_8d2829b6-688d-c5ed-131e-c7a183e8f336-fa07ce3f, #w-node-_725c695a-0d7a-e6ae-e697-6f557afd970c-fa07ce3f, #w-node-_725c695a-0d7a-e6ae-e697-6f557afd9711-fa07ce3f, #w-node-_725c695a-0d7a-e6ae-e697-6f557afd9718-fa07ce3f, #w-node-_725c695a-0d7a-e6ae-e697-6f557afd971d-fa07ce3f, #w-node-_725c695a-0d7a-e6ae-e697-6f557afd9722-fa07ce3f, #w-node-_725c695a-0d7a-e6ae-e697-6f557afd9727-fa07ce3f, #w-node-_725c695a-0d7a-e6ae-e697-6f557afd9728-fa07ce3f, #w-node-e427b0eb-aee6-fbc3-9d79-e1c0300528dd-fa07ce3f, #w-node-e427b0eb-aee6-fbc3-9d79-e1c0300528e2-fa07ce3f, #w-node-e427b0eb-aee6-fbc3-9d79-e1c0300528e9-fa07ce3f, #w-node-e427b0eb-aee6-fbc3-9d79-e1c0300528ee-fa07ce3f, #w-node-e427b0eb-aee6-fbc3-9d79-e1c0300528f3-fa07ce3f, #w-node-e427b0eb-aee6-fbc3-9d79-e1c0300528f8-fa07ce3f, #w-node-e427b0eb-aee6-fbc3-9d79-e1c0300528f9-fa07ce3f, #w-node-_3896e352-58d9-cfab-4652-f80cbc71648e-fa07ce3f, #w-node-fd97a177-ba8d-29f3-31ce-1b484f87d67f-fa07ce3f, #w-node-_73d839e1-98ba-fb29-3f39-82e48ecb8899-fa07ce3f, #w-node-cf671d53-afe9-d772-c2a5-f2337447d230-fa07ce3f, #w-node-b6f94791-a4ba-1edc-400f-352432e2ab41-fa07ce3f, #w-node-_7e58eeb4-ea73-c970-9f7e-2c460295991f-fa07ce3f, #w-node-_799901fe-9a70-a12e-7ed7-00fd96da2ede-fa07ce3f, #w-node-_799901fe-9a70-a12e-7ed7-00fd96da2edf-fa07ce3f, #w-node-_799901fe-9a70-a12e-7ed7-00fd96da2ee0-fa07ce3f, #w-node-_799901fe-9a70-a12e-7ed7-00fd96da2ee1-fa07ce3f {
+#w-node-_8d2829b6-688d-c5ed-131e-c7a183e8f31f-fa07ce3f, #w-node-_8d2829b6-688d-c5ed-131e-c7a183e8f324-fa07ce3f, #w-node-_8d2829b6-688d-c5ed-131e-c7a183e8f329-fa07ce3f, #iframe-trigger.w-node-_8d2829b6-688d-c5ed-131e-c7a183e8f32a-fa07ce3f, #w-node-_8d2829b6-688d-c5ed-131e-c7a183e8f32e-fa07ce3f, #w-node-_8d2829b6-688d-c5ed-131e-c7a183e8f32f-fa07ce3f, #w-node-_8d2829b6-688d-c5ed-131e-c7a183e8f332-fa07ce3f, #w-node-_8d2829b6-688d-c5ed-131e-c7a183e8f336-fa07ce3f, #w-node-_725c695a-0d7a-e6ae-e697-6f557afd970c-fa07ce3f, #w-node-_725c695a-0d7a-e6ae-e697-6f557afd9711-fa07ce3f, #w-node-_725c695a-0d7a-e6ae-e697-6f557afd9718-fa07ce3f, #w-node-_725c695a-0d7a-e6ae-e697-6f557afd971d-fa07ce3f, #w-node-_725c695a-0d7a-e6ae-e697-6f557afd9722-fa07ce3f, #w-node-_725c695a-0d7a-e6ae-e697-6f557afd9727-fa07ce3f, #w-node-_725c695a-0d7a-e6ae-e697-6f557afd9728-fa07ce3f, #w-node-_3896e352-58d9-cfab-4652-f80cbc71648e-fa07ce3f, #w-node-fd97a177-ba8d-29f3-31ce-1b484f87d67f-fa07ce3f, #w-node-_73d839e1-98ba-fb29-3f39-82e48ecb8899-fa07ce3f, #w-node-cf671d53-afe9-d772-c2a5-f2337447d230-fa07ce3f, #w-node-b6f94791-a4ba-1edc-400f-352432e2ab41-fa07ce3f, #w-node-_7e58eeb4-ea73-c970-9f7e-2c460295991f-fa07ce3f, #w-node-_799901fe-9a70-a12e-7ed7-00fd96da2ede-fa07ce3f, #w-node-_799901fe-9a70-a12e-7ed7-00fd96da2edf-fa07ce3f, #w-node-_799901fe-9a70-a12e-7ed7-00fd96da2ee0-fa07ce3f, #w-node-_799901fe-9a70-a12e-7ed7-00fd96da2ee1-fa07ce3f {
   grid-area: span 1 / span 1 / span 1 / span 1;
 }
 
