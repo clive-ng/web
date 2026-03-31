@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standalone Presentation</title>
+    <style>
+        /* Forces the presentation to fill the entire browser viewport */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        /* Removess borders and fits the iframe to the window size */
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <iframe 
+        src="https://docs.google.com/presentation/d/e/2PACX-1vTxXQZ5i3aO6Gbd7UtUi9GaGnw8tSfQ_Cpm8ePB6RZwJBH0sK69OJmB3parvUJo3XthgxhDDhcdY7s_/embed?start=false&loop=false&delayms=3000&rm=demo" 
+        allowfullscreen="true" 
+        mozallowfullscreen="true" 
+        webkitallowfullscreen="true">
+    </iframe>
+
+</body>
+</html>
