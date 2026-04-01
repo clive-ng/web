@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll Sequence Animation</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #111;
+            font-family: sans-serif;
+            /* Height determines how "long" the scroll lasts */
+            height: 500vh; 
+        }
+
+        .canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            max-width: 100vw;
+            max-height: 100vh;
+            object-fit: contain;
+        }
+
+        .helper-text {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="canvas-container">
+        <canvas id="sequence-canvas"></canvas>
+    </div>
+
+    <!-- <div class="helper-text">Scroll Down</div> -->
+
+    <script>
+        const canvas = document.getElementById("sequence-canvas");
+        const context = canvas.getContext("2d");
+
+        const frameCount = 300;
+        // Function to format the filename based on index
+        const currentFrame = index => (
+            `./ezgif-frame-${index.toString().padStart(3, '0')}.jpg`
+        );
+
+        const images = [];
+        const sequence = { frame: 0 };
+
+        // Preload images for smoothness
+        for (let i = 1; i <= frameCount; i++) {
+            const img = new Image();
+            img.src = currentFrame(i);
+            images.push(img);
+        }
+
+        // Set initial canvas size once first image loads
+        images[0].onload = () => {
+            canvas.width = images[0].width;
+            canvas.height = images[0].height;
+            render();
+        };
+
+        function render() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(images[sequence.frame], 0, 0);
+        }
+
+        // Simple Easing Function (Ease Out Quad)
+        // Adjust this if you want a different "feel"
+        function easeOutQuad(t) {
+            return t * (2 - t);
+        }
+
+        window.addEventListener("scroll", () => {
+            const scrollTop = html.scrollTop;
+            const maxScrollTop = html.scrollHeight - window.innerHeight;
+            const scrollFraction = scrollTop / maxScrollTop;
+            
+            // Apply easing to the scroll fraction
+            // For standard linear scroll, remove the easeOutQuad wrapper
+            const easedFraction = easeOutQuad(scrollFraction);
+
+            const frameIndex = Math.min(
+                frameCount - 1,
+                Math.floor(easedFraction * frameCount)
+            );
+
+            sequence.frame = frameIndex;
+            requestAnimationFrame(render);
+        });
+
+        const html = document.documentElement;
+    </script>
+</body>
+</html>
