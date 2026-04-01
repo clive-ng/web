@@ -1277,6 +1277,12 @@ img {
   cursor: zoom-in;
 }
 
+.code-embed-10 {
+  border-radius: 20px;
+  width: 100%;
+  margin-top: 30px;
+}
+
 @media screen and (max-width: 991px) {
   .heading-jumbo {
     font-size: 56px;
