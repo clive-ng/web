@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--  Last Published: Wed Apr 01 2026 11:12:34 GMT+0000 (Coordinated Universal Time)  -->
+<!DOCTYPE html><!--  Last Published: Wed Apr 01 2026 13:32:30 GMT+0000 (Coordinated Universal Time)  -->
 <html data-wf-page="69ca59bec688d9c8fa07ce42" data-wf-site="69ca59bec688d9c8fa07ce44">
 <head>
   <meta charset="utf-8">
@@ -384,12 +384,8 @@ function windowResized() {
           </div>
         </div>
       </div>
-      <div class="left-arrow w-slider-arrow-left">
-        <div class="text-block">&lt;</div>
-      </div>
-      <div class="right-arrow w-slider-arrow-right">
-        <div class="text-block">&gt;</div>
-      </div>
+      <div class="left-arrow w-slider-arrow-left"><img src="images/btn.png" loading="lazy" alt=""></div>
+      <div class="right-arrow w-slider-arrow-right"><img src="images/btn.png" loading="lazy" alt=""></div>
       <div class="slide-nav w-slider-nav w-round"></div>
     </div>
   </section>
@@ -574,22 +570,26 @@ document.addEventListener("DOMContentLoaded", function() {
   // 1. Create the Loader Overlay
   const loader = document.createElement('div');
   loader.id = 'page-loader';
-  // 2. Insert the 48px SVG Spinner
   loader.innerHTML = `
-    <svg class="spinner-icon" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="25" cy="25" r="20" stroke="#f2f2f2" stroke-width="4" fill="none"/>
-      <circle class="blue-ring" cx="25" cy="25" r="20" 
-        stroke="#0000ff" stroke-width="4" 
-        fill="none" 
-        stroke-linecap="round"
-        stroke-dasharray="125" 
-        stroke-dashoffset="125"/>
-    </svg>
+    <div class="loader-content">
+      <svg class="button-spinner" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="48" fill="#0000FF"/>
+        <circle cx="50" cy="50" r="38" fill="none" stroke="#0000D9" stroke-width="2" opacity="0.5"/>
+        <circle cx="38" cy="38" r="6" fill="#FFFFFF"/>
+        <circle cx="62" cy="38" r="6" fill="#FFFFFF"/>
+        <circle cx="38" cy="62" r="6" fill="#FFFFFF"/>
+        <circle cx="62" cy="62" r="6" fill="#FFFFFF"/>
+        <path d="M20 50 A30 30 0 0 1 50 20" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.4"/>
+        <path d="M30 50 A20 20 0 0 1 50 30" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.2"/>
+      </svg>
+      <div id="loader-percentage">0%</div>
+    </div>
   `;
   document.body.appendChild(loader);
-  // 3. Inject Styles
+  // 2. Inject Styles
   const style = document.createElement('style');
   style.textContent = `
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400&display=swap');
     #page-loader {
       position: fixed;
       top: 0; left: 0;
@@ -599,22 +599,27 @@ document.addEventListener("DOMContentLoaded", function() {
       z-index: 10000;
       transition: opacity 0.5s ease, visibility 0.5s ease;
     }
-    .spinner-icon {
-      width: 48px;
+    .loader-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    .button-spinner {
+      width: 48px; /* Size of your button */
       height: 48px;
-      animation: rotate 2s linear infinite;
+      animation: rotate-button 2s linear infinite;
     }
-    .blue-ring {
-      animation: dash 1.5s ease-in-out infinite;
-      transform-origin: center;
+    #loader-percentage {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 16px;
+      font-weight: 400;
+      color: #0000FF;
+      font-variant-numeric: tabular-nums;
     }
-    @keyframes rotate {
-      100% { transform: rotate(360deg); }
-    }
-    @keyframes dash {
-      0% { stroke-dashoffset: 125; }
-      50% { stroke-dashoffset: 35; transform: rotate(45deg); }
-      100% { stroke-dashoffset: 125; transform: rotate(360deg); }
+    @keyframes rotate-button {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
     .loader-hidden {
       opacity: 0;
@@ -622,11 +627,34 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   `;
   document.head.appendChild(style);
-  // 4. Hide loader only when all large images are ready
+  // 3. Progress Logic
+  const percentText = document.getElementById('loader-percentage');
+  const media = document.querySelectorAll('img, script, link[rel="stylesheet"]');
+  let loadedCount = 0;
+  const totalCount = media.length;
+  function updateProgress() {
+    loadedCount++;
+    const progress = Math.min(Math.round((loadedCount / totalCount) * 100), 99);
+    percentText.textContent = progress + '%';
+  }
+  if (totalCount > 0) {
+    media.forEach((item) => {
+      if (item.complete) {
+        updateProgress();
+      } else {
+        item.addEventListener('load', updateProgress);
+        item.addEventListener('error', updateProgress);
+      }
+    });
+  } else {
+    percentText.textContent = '100%';
+  }
+  // 4. Final Transition
   window.addEventListener('load', function() {
+    percentText.textContent = '100%';
     setTimeout(() => {
       loader.classList.add('loader-hidden');
-    }, 400);
+    }, 600);
   });
 });
 </script>
