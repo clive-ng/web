@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--  Last Published: Wed Apr 01 2026 00:43:59 GMT+0000 (Coordinated Universal Time)  -->
+<!DOCTYPE html><!--  Last Published: Wed Apr 01 2026 11:12:34 GMT+0000 (Coordinated Universal Time)  -->
 <html data-wf-page="69ca59bec688d9c8fa07ce42" data-wf-site="69ca59bec688d9c8fa07ce44">
 <head>
   <meta charset="utf-8">
@@ -154,17 +154,15 @@
     <div data-delay="4000" data-animation="slide" class="slider play w-slider" data-autoplay="false" data-easing="ease-out" data-hide-arrows="false" data-disable-swipe="false" data-autoplay-limit="0" data-nav-spacing="3" data-duration="500" data-infinite="true">
       <div class="mask play w-slider-mask">
         <div class="slide-copy w-slide">
-          <div class="div-block playground">
+          <div class="teaching playground">
             <div class="bodytext play">Hunterian Museum</div>
+            <div class="code-embed-5 w-embed w-iframe"><iframe src="https://clive.ng/hm/" width="100%" height="100%" style="border:none;">
+              </iframe></div>
           </div>
-          <div class="code-embed-5 w-embed w-iframe"><iframe src="https://clive.ng/hm/" width="100%" height="100%" style="border:none;">
-            </iframe></div>
         </div>
         <div class="slide play w-slide">
-          <div class="div-block playground">
+          <div class="teaching playground">
             <div class="bodytext play">Bubble</div>
-          </div>
-          <div class="html">
             <div class="code-embed-4 w-embed w-script">
               <div id="p5-container" style="width: 100%; height: 100vh;"></div>
               <script>
@@ -206,11 +204,9 @@ function windowResized() {
           </div>
         </div>
         <div class="slide w-slide">
-          <div class="div-block playground">
+          <div class="teaching playground">
             <div class="bodytext play">Lunch</div>
-          </div>
-          <div class="jswindoe">
-            <div class="w-embed w-script">
+            <div class="_90 w-embed w-script">
               <style>
   html, body {
     margin: 0;
@@ -334,35 +330,10 @@ function windowResized() {
           </div>
         </div>
         <div class="slide-copy w-slide">
-          <div class="div-block playground">
-            <div class="bodytext play">Graphic Register</div>
-          </div>
-          <div class="code-embed-5 w-embed w-iframe">
-            <style>
-  .responsive-iframe-wrapper {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-  }
-  .responsive-iframe-wrapper iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-</style>
-            <div class="responsive-iframe-wrapper">
-              <iframe src="https://code-attend-excel.lovable.app/" frameborder="0" allowfullscreen=""></iframe>
-            </div>
-          </div>
-        </div>
-        <div class="slide-copy w-slide">
-          <div class="div-block playground">
+          <div class="teaching playground">
             <div class="bodytext play">Grid Forge</div>
-          </div>
-          <div class="code-embed-5 w-embed w-iframe">
-            <style>
+            <div class="code-embed-5 w-embed w-iframe">
+              <style>
   .responsive-iframe-wrapper {
     position: relative;
     width: 100%;
@@ -377,41 +348,18 @@ function windowResized() {
     height: 100%;
   }
 </style>
-            <div class="responsive-iframe-wrapper">
-              <iframe src="https://idgrid.lovable.app/" frameborder="0" allowfullscreen=""></iframe>
+              <div class="responsive-iframe-wrapper">
+                <iframe src="https://idgrid.lovable.app/" frameborder="0" allowfullscreen=""></iframe>
+              </div>
             </div>
           </div>
         </div>
         <div class="slide-copy w-slide">
-          <div class="div-block playground">
+          <div class="teaching playground _90">
             <div class="bodytext play">SHKP APP</div>
-          </div>
-          <div class="div-block-25">
-            <div class="div-block-24 _100">
-              <div class="iphone">
-                <div class="code-embed-5 shk w-embed w-iframe">
-                  <style>
-  .responsive-iframe-wrapper {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-    padding-bottom: 56.25%; /* 16:9 ratio - adjust as needed */
-  }
-  .responsive-iframe-wrapper iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-</style>
-                  <div class="responsive-iframe-wrapper">
-                    <iframe src="https://clive-ng.github.io/shkp-app/en.html" frameborder="0" allowfullscreen=""></iframe>
-                  </div>
-                </div>
-              </div>
-              <div class="iphone ipad">
-                <div class="code-embed-5 shk w-embed w-iframe">
+            <div class="flex-middle">
+              <div id="resizable-box" class="iphone">
+                <div class="code-embed-5 shk _100 w-embed w-iframe">
                   <style>
   .responsive-iframe-wrapper {
     position: relative;
@@ -437,10 +385,10 @@ function windowResized() {
         </div>
       </div>
       <div class="left-arrow w-slider-arrow-left">
-        <div class="text-block">◀</div>
+        <div class="text-block">&lt;</div>
       </div>
       <div class="right-arrow w-slider-arrow-right">
-        <div class="text-block">▶</div>
+        <div class="text-block">&gt;</div>
       </div>
       <div class="slide-nav w-slider-nav w-round"></div>
     </div>
@@ -736,5 +684,55 @@ document.addEventListener("DOMContentLoaded", function() {
   .scroll-reveal.delay-2 { transition-delay: 400ms !important; }
   .scroll-reveal.delay-3 { transition-delay: 600ms !important; }
 </style>
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const resizable = document.getElementById('resizable-box');
+    if (!resizable) return;
+    resizable.style.position = 'relative';
+    const handle = document.createElement('div');
+    handle.style.cssText = `
+        width: 20px; 
+        height: 100%; 
+        position: absolute; 
+        right: -10px; 
+        top: 0; 
+        cursor: col-resize; 
+        z-index: 999;
+        background: transparent;
+    `;
+    resizable.appendChild(handle);
+    let isResizing = false;
+    let aspectRatio = 1;
+    handle.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        e.preventDefault();
+        // Calculate current aspect ratio: Width / Height
+        const rect = resizable.getBoundingClientRect();
+        aspectRatio = rect.width / rect.height;
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+    });
+    window.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        const rect = resizable.getBoundingClientRect();
+        const newWidth = e.clientX - rect.left;
+        if (newWidth > 100) {
+            // Apply new width
+            resizable.style.width = `${newWidth}px`;
+            // Calculate and apply new height to maintain ratio
+            // Formula: Height = Width / Ratio
+            const newHeight = newWidth / aspectRatio;
+            resizable.style.height = `${newHeight}px`;
+        }
+    });
+    window.addEventListener('mouseup', () => {
+        if (isResizing) {
+            isResizing = false;
+            document.body.style.cursor = 'default';
+            document.body.style.userSelect = 'auto';
+        }
+    });
+});
+</script>
 </body>
 </html>

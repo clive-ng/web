@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--  Last Published: Wed Apr 01 2026 00:43:59 GMT+0000 (Coordinated Universal Time)  -->
+<!DOCTYPE html><!--  Last Published: Wed Apr 01 2026 11:12:34 GMT+0000 (Coordinated Universal Time)  -->
 <html data-wf-page="69ca59bec688d9c8fa07ce3e" data-wf-site="69ca59bec688d9c8fa07ce44">
 <head>
   <meta charset="utf-8">
@@ -455,5 +455,55 @@ document.addEventListener("DOMContentLoaded", function() {
   .scroll-reveal.delay-2 { transition-delay: 400ms !important; }
   .scroll-reveal.delay-3 { transition-delay: 600ms !important; }
 </style>
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const resizable = document.getElementById('resizable-box');
+    if (!resizable) return;
+    resizable.style.position = 'relative';
+    const handle = document.createElement('div');
+    handle.style.cssText = `
+        width: 20px; 
+        height: 100%; 
+        position: absolute; 
+        right: -10px; 
+        top: 0; 
+        cursor: col-resize; 
+        z-index: 999;
+        background: transparent;
+    `;
+    resizable.appendChild(handle);
+    let isResizing = false;
+    let aspectRatio = 1;
+    handle.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        e.preventDefault();
+        // Calculate current aspect ratio: Width / Height
+        const rect = resizable.getBoundingClientRect();
+        aspectRatio = rect.width / rect.height;
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+    });
+    window.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        const rect = resizable.getBoundingClientRect();
+        const newWidth = e.clientX - rect.left;
+        if (newWidth > 100) {
+            // Apply new width
+            resizable.style.width = `${newWidth}px`;
+            // Calculate and apply new height to maintain ratio
+            // Formula: Height = Width / Ratio
+            const newHeight = newWidth / aspectRatio;
+            resizable.style.height = `${newHeight}px`;
+        }
+    });
+    window.addEventListener('mouseup', () => {
+        if (isResizing) {
+            isResizing = false;
+            document.body.style.cursor = 'default';
+            document.body.style.userSelect = 'auto';
+        }
+    });
+});
+</script>
 </body>
 </html>
