@@ -250,6 +250,7 @@ img {
   grid-auto-columns: 1fr;
   justify-content: flex-start;
   align-items: center;
+  width: 30px;
   height: 100vh;
   margin-left: 0;
   margin-right: 0;
@@ -261,20 +262,25 @@ img {
 }
 
 .right-arrow {
+  background-color: #fff;
   justify-content: flex-end;
   align-items: center;
+  width: 30px;
+  height: 100vh;
   margin-right: 0;
   padding-right: 10px;
   display: flex;
   position: fixed;
+  top: 0;
+  right: 0;
 }
 
 .text-block {
   color: #00f;
   background-color: #fff0;
   font-family: Montserrat, sans-serif;
-  font-size: 14px;
-  font-weight: 400;
+  font-size: 24px;
+  font-weight: 600;
 }
 
 .slide-nav {
@@ -953,6 +959,8 @@ img {
 
 .code-embed-4 {
   z-index: -1;
+  width: 90%;
+  height: 100%;
   position: relative;
   inset: 0%;
 }
@@ -963,8 +971,12 @@ img {
 }
 
 .code-embed-5 {
-  width: 100%;
+  width: 90%;
   height: 100vh;
+}
+
+.code-embed-5.shk._100 {
+  width: 100%;
 }
 
 .slide-copy {
@@ -1172,7 +1184,7 @@ img {
   margin: 0 auto;
 }
 
-.div-block-29 {
+.teaching {
   flex-flow: column;
   justify-content: space-between;
   align-items: flex-start;
@@ -1182,7 +1194,7 @@ img {
   display: flex;
 }
 
-.div-block-29.playground {
+.teaching.playground {
   z-index: 10;
   justify-content: space-between;
   align-items: flex-start;
@@ -1195,6 +1207,18 @@ img {
   display: block;
   position: sticky;
   inset: 0% 0% auto;
+}
+
+.teaching.playground.flex {
+  flex-flow: row;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  display: flex;
+}
+
+.teaching.playground._90 {
+  width: 90%;
 }
 
 .image-72 {
@@ -1283,6 +1307,19 @@ img {
   margin-top: 30px;
 }
 
+.flex-middle {
+  grid-column-gap: 30px;
+  grid-row-gap: 30px;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  display: flex;
+}
+
+._90 {
+  width: 90%;
+}
+
 @media screen and (max-width: 991px) {
   .heading-jumbo {
     font-size: 56px;
@@ -1302,7 +1339,11 @@ img {
   }
 
   .menu {
+    z-index: 1000;
+    background-color: #ffffffe6;
     flex-flow: row;
+    height: 120px;
+    position: sticky;
   }
 
   .inside._01.slider {
@@ -1316,11 +1357,37 @@ img {
 
   .div-block.playground {
     width: auto;
+    display: block;
+  }
+
+  .slider {
+    height: auto;
+    margin-bottom: auto;
   }
 
   .left-arrow {
+    aspect-ratio: auto;
     flex-flow: row;
+    width: 30px;
+    height: 100vh;
     position: fixed;
+    inset: 0% auto auto 0%;
+  }
+
+  .right-arrow {
+    justify-content: center;
+    align-items: center;
+    width: 30px;
+    height: 100vh;
+    display: flex;
+    position: fixed;
+    inset: 0% 0% auto auto;
+    overflow: visible;
+  }
+
+  .text-block {
+    position: absolute;
+    top: 20%;
   }
 
   .project-description-grid, .interactive-grid {
@@ -1384,7 +1451,24 @@ img {
     padding-bottom: 200px;
   }
 
-  ._3dgrid, .project-description-grid-2 {
+  ._3dgrid {
+    grid-row-gap: 50px;
+    text-align: center;
+    flex-direction: column;
+    grid-template: "."
+                   "."
+                   / 1fr;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+  }
+
+  .mask-4 {
+    height: 1000px;
+  }
+
+  .project-description-grid-2 {
     grid-row-gap: 50px;
     text-align: center;
     flex-direction: column;
@@ -1414,7 +1498,7 @@ img {
     display: flex;
   }
 
-  .div-block-29.playground, .div-block-30.playground {
+  .teaching.playground, .div-block-30.playground {
     width: auto;
   }
 
@@ -1485,7 +1569,14 @@ img {
   }
 
   .left-arrow {
+    height: 100vh;
     position: fixed;
+  }
+
+  .right-arrow {
+    height: 100vh;
+    top: 0;
+    bottom: 0;
   }
 
   .detail-image {
@@ -1545,6 +1636,10 @@ img {
     text-align: center;
   }
 
+  .mask-4 {
+    height: 100vh;
+  }
+
   .project-description-grid-2, .project-description-grid-3, .project-description-grid-4 {
     width: 70%;
     max-width: 470px;
@@ -1568,6 +1663,10 @@ img {
     flex-flow: row;
     justify-content: space-between;
     align-items: flex-start;
+  }
+
+  .left-arrow, .right-arrow {
+    margin-top: 200px;
   }
 
   .project-description-grid, .interactive-grid {
