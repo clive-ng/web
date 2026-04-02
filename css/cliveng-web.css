@@ -122,6 +122,11 @@ img {
   margin-top: 30px;
 }
 
+.bodytext.slide {
+  margin-bottom: 30px;
+  padding-right: 20px;
+}
+
 .inside {
   border: 1px #000;
   width: 100%;
@@ -291,7 +296,21 @@ img {
 
 .slide-nav {
   color: #00f;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 30px;
+  margin-right: 30px;
+  padding-right: 30px;
   font-family: Montserrat, sans-serif;
+  display: flex;
+  position: fixed;
+  inset: 0% 0% auto;
+}
+
+.slide-nav.top {
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 15px;
 }
 
 .slide01 {
@@ -1672,6 +1691,116 @@ img {
   display: grid;
 }
 
+.image-112 {
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 30px;
+  margin-right: 0;
+  padding-right: 0;
+}
+
+.youtube-9 {
+  padding-right: 30px;
+}
+
+.div-block-40 {
+  width: 100%;
+  height: auto;
+  margin-bottom: 0;
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
+.div-block-41 {
+  background-color: #a86969;
+  height: 9000px;
+}
+
+.youtube-10 {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.image-113, .image-114, .image-115 {
+  margin-bottom: 30px;
+}
+
+.bodytext-14 {
+  color: #00f;
+  overflow-wrap: break-word;
+  border: 0 #fff;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-family: Montserrat, sans-serif;
+  text-decoration: none;
+}
+
+.image-116, .image-117 {
+  margin-bottom: 30px;
+}
+
+.bodytext-15 {
+  color: #00f;
+  overflow-wrap: break-word;
+  border: 0 #fff;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-family: Montserrat, sans-serif;
+  text-decoration: none;
+}
+
+.div-block-42 {
+  grid-column-gap: 30px;
+  grid-row-gap: 30px;
+  justify-content: space-between;
+  align-items: flex-start;
+  display: flex;
+}
+
+.image-118 {
+  margin-top: auto;
+}
+
+.image-119, .image-120 {
+  margin-top: 30px;
+}
+
+.bodytext-16 {
+  color: #00f;
+  overflow-wrap: break-word;
+  border: 0 #fff;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-family: Montserrat, sans-serif;
+  text-decoration: none;
+}
+
+.image-121, .image-122 {
+  margin-top: 30px;
+}
+
+.image-123 {
+  margin-top: auto;
+}
+
+.image-124, .image-125, .image-126, .image-127 {
+  margin-top: 30px;
+}
+
+.bodytext-17, .bodytext-18 {
+  color: #00f;
+  overflow-wrap: break-word;
+  border: 0 #fff;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-family: Montserrat, sans-serif;
+  text-decoration: none;
+}
+
+.image-128 {
+  width: 100%;
+}
+
 @media screen and (max-width: 991px) {
   .heading-jumbo {
     font-size: 56px;
@@ -1692,9 +1821,10 @@ img {
 
   .menu {
     z-index: 1000;
-    background-color: #ffffffe6;
+    background-color: #fff;
     flex-flow: row;
-    height: 120px;
+    height: auto;
+    padding-bottom: 0;
     position: sticky;
   }
 
