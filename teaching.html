@@ -1,4 +1,4 @@
-<!DOCTYPE html><!--  Last Published: Thu Apr 02 2026 20:26:18 GMT+0000 (Coordinated Universal Time)  -->
+<!DOCTYPE html><!--  Last Published: Thu Apr 02 2026 18:21:20 GMT+0000 (Coordinated Universal Time)  -->
 <html data-wf-page="69ca59bec688d9c8fa07ce41" data-wf-site="69ca59bec688d9c8fa07ce44">
 <head>
   <meta charset="utf-8">
@@ -123,6 +123,80 @@
   display: none !important;
 }
 </style>
+  <div class="loader-wrapper">
+    <div class="loader-content">
+      <div class="loader-svg"></div>
+      <div id="loader-percent">0%</div>
+    </div>
+  </div>
+  <style>
+/* 2. ALL CSS (Slider Dots + Loader) */
+/* LOADER STYLES */
+.loader-wrapper {
+  position: fixed;
+  inset: 0;
+  background-color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition: opacity 0.5s ease;
+}
+.loader-svg {
+  width: 48px;
+  height: 48px;
+  background-image: url("data:image/svg+xml,%3Csvg width='800' height='800' viewBox='0 0 800 800' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='400' cy='400' r='400' fill='%230000FF'/%3E%3Ccircle cx='400' cy='400' r='333.333' fill='%230000FF' stroke='white' stroke-width='10'/%3E%3Ccircle cx='300' cy='300' r='33.3333' fill='white'/%3E%3Ccircle cx='500' cy='300' r='33.3333' fill='white'/%3E%3Ccircle cx='300' cy='500' r='33.3333' fill='white'/%3E%3Ccircle cx='500' cy='500' r='33.3333' fill='white'/%3E%3C/svg%3E");
+  background-size: contain;
+  animation: spin 1.2s ease-in-out infinite;
+  margin: 0 auto 0px;
+}
+#loader-percent {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  color: #0000FF;
+  font-weight: 400;
+  text-align: center;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.loader-hidden { opacity: 0; pointer-events: none; }
+/* SLIDER DOTS STYLES */
+.w-slider-dot {
+  background-image: url("data:image/svg+xml,%3Csvg width='800' height='800' viewBox='0 0 800 800' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='400' cy='400' r='400' fill='%230000FF'/%3E%3Ccircle cx='400' cy='400' r='333.333' fill='%230000FF' stroke='white' stroke-width='10'/%3E%3Ccircle cx='300' cy='300' r='33.3333' fill='white'/%3E%3Ccircle cx='500' cy='300' r='33.3333' fill='white'/%3E%3Ccircle cx='300' cy='500' r='33.3333' fill='white'/%3E%3Ccircle cx='500' cy='500' r='33.3333' fill='white'/%3E%3C/svg%3E") !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-color: transparent !important;
+  width: 20px !important;
+  height: 20px !important;
+  opacity: 0.4;
+}
+.w-slider-dot.w-active { opacity: 1; }
+.w-slider-dot div { display: none !important; }
+</style>
+  <script>
+/* 3. LOADER LOGIC (Percentage & Fade) */
+(function() {
+  window.addEventListener("load", function() {
+    const percentEl = document.getElementById("loader-percent");
+    const wrapper = document.querySelector(".loader-wrapper");
+    let count = 0;
+    // Fast count to 100 on load
+    const interval = setInterval(() => {
+      count += Math.floor(Math.random() * 15) + 5;
+      if (count >= 100) {
+        count = 100;
+        clearInterval(interval);
+        // Hide loader once 100% is reached
+        setTimeout(() => {
+          wrapper.classList.add("loader-hidden");
+        }, 300);
+      }
+      percentEl.innerText = count + "%";
+    }, 50);
+  });
+})();
+</script>
 </head>
 <body class="body">
   <section class="menu">
