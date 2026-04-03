@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Festival of Hong Kong | Original Colors</title>
+    <style>
+        body { 
+            margin: 0; 
+            background-color: #CFD0CE; 
+            overflow: hidden; 
+            font-family: sans-serif; 
+        }
+        #instructions {
+            position: absolute; bottom: 20px; width: 100%;
+            text-align: center; color: #333; opacity: 0.6;
+            pointer-events: none; text-transform: uppercase; font-size: 10px;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#CFD0CE');
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        
+        // CRITICAL: This ensures the renderer doesn't lighten/alter the colors
+        renderer.toneMapping = THREE.NoToneMapping;
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        
+        document.body.appendChild(renderer.domElement);
+
+        const loader = new THREE.TextureLoader();
+        
+        // Load textures
+        const frontTex = loader.load('hkf01.jpg');
+        const backTex = loader.load('hkf02.jpg');
+
+        // Set color space on textures directly to match original JPGs
+        frontTex.colorSpace = THREE.SRGBColorSpace;
+        backTex.colorSpace = THREE.SRGBColorSpace;
+
+        // Correct the orientation of the back image
+        backTex.center.set(0.5, 0.5);
+        backTex.repeat.set(-1, 1);
+
+        // BasicMaterial ignores all scene lighting to keep original colors
+        const frontMat = new THREE.MeshBasicMaterial({ map: frontTex, transparent: true });
+        const backMat = new THREE.MeshBasicMaterial({ map: backTex, transparent: true });
+
+        const posterGroup = new THREE.Group();
+
+        // FRONT PLANE
+        const frontPlane = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 4.5), frontMat);
+        posterGroup.add(frontPlane);
+
+        // BACK PLANE (Rotated and slightly offset to prevent flickering)
+        const backPlane = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 4.5), backMat);
+        backPlane.rotation.y = Math.PI;
+        backPlane.position.z = -0.005; 
+        posterGroup.add(backPlane);
+
+        scene.add(posterGroup);
+
+        camera.position.z = 8;
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 1.2;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
