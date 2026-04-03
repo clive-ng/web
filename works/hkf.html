@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Festival of Hong Kong | Strong Physics Effect</title>
+    <title>Festival of Hong Kong | Original Colors</title>
     <style>
-        body { margin: 0; background-color: #CFD0CE; overflow: hidden; font-family: sans-serif; }
+        body { 
+            margin: 0; 
+            background-color: #CFD0CE; 
+            overflow: hidden; 
+            font-family: sans-serif; 
+        }
         #instructions {
             position: absolute; bottom: 20px; width: 100%;
             text-align: center; color: #333; opacity: 0.6;
@@ -16,7 +21,7 @@
 </head>
 <body>
 
-    <div id="instructions">Drag quickly to see the paper bend dramatically</div>
+    <div id="instructions">Click and Drag to Spin • Scroll to Zoom</div>
 
     <script type="importmap">
         {
@@ -38,69 +43,42 @@
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         
-        // Locked color space for accuracy
+        // CRITICAL: This ensures the renderer doesn't lighten/alter the colors
         renderer.toneMapping = THREE.NoToneMapping;
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         
         document.body.appendChild(renderer.domElement);
 
         const loader = new THREE.TextureLoader();
+        
+        // Load textures
         const frontTex = loader.load('hkf01.jpg');
         const backTex = loader.load('hkf02.jpg');
+
+        // Set color space on textures directly to match original JPGs
         frontTex.colorSpace = THREE.SRGBColorSpace;
         backTex.colorSpace = THREE.SRGBColorSpace;
+
+        // Correct the orientation of the back image
         backTex.center.set(0.5, 0.5);
         backTex.repeat.set(-1, 1);
 
-        // --- UPDATED SHADER FOR DRAMATIC BENDING ---
-        const vertexShader = `
-            varying vec2 vUv;
-            uniform float uBend;
-            void main() {
-                vUv = uv;
-                vec3 pos = position;
-                
-                // --- STRONGER BEND LOGIC ---
-                // We calculate a curve that pushes the edges back further.
-                // We use 'pow' to make the center of the paper stable, while the corners whip back.
-                float curve = sin(uv.x * 3.14159) * pow(abs(uv.y - 0.5) + 0.5, 2.0);
-                
-                // Multiply 'uBend' by 3.0 to dramatically amplify the velocity response.
-                pos.z += curve * uBend * 3.0;
-                
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-            }
-        `;
+        // BasicMaterial ignores all scene lighting to keep original colors
+        const frontMat = new THREE.MeshBasicMaterial({ map: frontTex, transparent: true });
+        const backMat = new THREE.MeshBasicMaterial({ map: backTex, transparent: true });
 
-        const fragmentShader = `
-            varying vec2 vUv;
-            uniform sampler sampler2D uTexture;
-            void main() {
-                // Display raw texture pixels, no lighting calculations
-                gl_FragColor = texture2D(uTexture, vUv);
-            }
-        `;
-
-        const frontMat = new THREE.ShaderMaterial({
-            uniforms: { uTexture: { value: frontTex }, uBend: { value: 0 } },
-            vertexShader, fragmentShader, side: THREE.FrontSide, transparent: true
-        });
-
-        const backMat = new THREE.ShaderMaterial({
-            uniforms: { uTexture: { value: backTex }, uBend: { value: 0 } },
-            vertexShader, fragmentShader, side: THREE.BackSide, transparent: true
-        });
-
-        // --- HIGH RESOLUTION GEOMETRY ---
-        // Changed segments from 32x32 to 128x128 to allow for extreme curves.
-        const geometry = new THREE.PlaneGeometry(3.2, 4.5, 128, 128);
         const posterGroup = new THREE.Group();
 
-        const frontPlane = new THREE.Mesh(geometry, frontMat);
-        const backPlane = new THREE.Mesh(geometry, backMat);
-        
+        // FRONT PLANE
+        const frontPlane = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 4.5), frontMat);
         posterGroup.add(frontPlane);
+
+        // BACK PLANE (Rotated and slightly offset to prevent flickering)
+        const backPlane = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 4.5), backMat);
+        backPlane.rotation.y = Math.PI;
+        backPlane.position.z = -0.005; 
         posterGroup.add(backPlane);
+
         scene.add(posterGroup);
 
         camera.position.z = 8;
@@ -108,28 +86,11 @@
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.autoRotate = true;
-        controls.autoRotateSpeed = 1.0;
-
-        // VELOCITY TRACKING
-        let lastRotationY = 0;
-        let velocity = 0;
+        controls.autoRotateSpeed = 1.2;
 
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
-
-            const currentRotationY = controls.getAzimuthalAngle();
-            const delta = currentRotationY - lastRotationY;
-            
-            velocity += (delta - velocity) * 0.1;
-            lastRotationY = currentRotationY;
-
-            // Apply amplified bend based on velocity
-            // Higher clamp value allows more extreme bending before stopping.
-            const bendAmount = THREE.MathUtils.clamp(velocity * 2.5, -0.8, 0.8);
-            frontMat.uniforms.uBend.value = bendAmount;
-            backMat.uniforms.uBend.value = -bendAmount;
-
             renderer.render(scene, camera);
         }
 
