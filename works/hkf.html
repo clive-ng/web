@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Festival of Hong Kong | Physics Paper Effect</title>
+    <title>Festival of Hong Kong | Strong Physics Effect</title>
     <style>
         body { margin: 0; background-color: #CFD0CE; overflow: hidden; font-family: sans-serif; }
         #instructions {
@@ -16,7 +16,7 @@
 </head>
 <body>
 
-    <!-- <div id="instructions">Drag quickly to see the paper bend</div> -->
+    <div id="instructions">Drag quickly to see the paper bend dramatically</div>
 
     <script type="importmap">
         {
@@ -37,8 +37,11 @@
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        
+        // Locked color space for accuracy
         renderer.toneMapping = THREE.NoToneMapping;
         renderer.outputColorSpace = THREE.SRGBColorSpace;
+        
         document.body.appendChild(renderer.domElement);
 
         const loader = new THREE.TextureLoader();
@@ -49,41 +52,48 @@
         backTex.center.set(0.5, 0.5);
         backTex.repeat.set(-1, 1);
 
-        // --- SHADER FOR PAPER BENDING ---
+        // --- UPDATED SHADER FOR DRAMATIC BENDING ---
         const vertexShader = `
             varying vec2 vUv;
             uniform float uBend;
             void main() {
                 vUv = uv;
                 vec3 pos = position;
-                // Bend the corners based on drag velocity
-                // This creates a cylindrical curve effect
-                float dist = length(uv - 0.5);
-                pos.z += sin(uv.x * 3.14159) * uBend * dist;
+                
+                // --- STRONGER BEND LOGIC ---
+                // We calculate a curve that pushes the edges back further.
+                // We use 'pow' to make the center of the paper stable, while the corners whip back.
+                float curve = sin(uv.x * 3.14159) * pow(abs(uv.y - 0.5) + 0.5, 2.0);
+                
+                // Multiply 'uBend' by 3.0 to dramatically amplify the velocity response.
+                pos.z += curve * uBend * 3.0;
+                
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
             }
         `;
 
         const fragmentShader = `
             varying vec2 vUv;
-            uniform sampler2D uTexture;
+            uniform sampler sampler2D uTexture;
             void main() {
+                // Display raw texture pixels, no lighting calculations
                 gl_FragColor = texture2D(uTexture, vUv);
             }
         `;
 
         const frontMat = new THREE.ShaderMaterial({
             uniforms: { uTexture: { value: frontTex }, uBend: { value: 0 } },
-            vertexShader, fragmentShader, side: THREE.FrontSide
+            vertexShader, fragmentShader, side: THREE.FrontSide, transparent: true
         });
 
         const backMat = new THREE.ShaderMaterial({
             uniforms: { uTexture: { value: backTex }, uBend: { value: 0 } },
-            vertexShader, fragmentShader, side: THREE.BackSide
+            vertexShader, fragmentShader, side: THREE.BackSide, transparent: true
         });
 
-        // Use high-segment geometry so it has "joints" to bend
-        const geometry = new THREE.PlaneGeometry(3.2, 4.5, 32, 32);
+        // --- HIGH RESOLUTION GEOMETRY ---
+        // Changed segments from 32x32 to 128x128 to allow for extreme curves.
+        const geometry = new THREE.PlaneGeometry(3.2, 4.5, 128, 128);
         const posterGroup = new THREE.Group();
 
         const frontPlane = new THREE.Mesh(geometry, frontMat);
@@ -100,7 +110,7 @@
         controls.autoRotate = true;
         controls.autoRotateSpeed = 1.0;
 
-        // --- VELOCITY TRACKING ---
+        // VELOCITY TRACKING
         let lastRotationY = 0;
         let velocity = 0;
 
@@ -108,17 +118,15 @@
             requestAnimationFrame(animate);
             controls.update();
 
-            // Calculate how fast the poster is rotating
             const currentRotationY = controls.getAzimuthalAngle();
             const delta = currentRotationY - lastRotationY;
             
-            // Normalize the delta and apply "lag" for physics feel
             velocity += (delta - velocity) * 0.1;
             lastRotationY = currentRotationY;
 
-            // Apply the bend based on velocity
-            // We limit the bend so it doesn't look like rubber
-            const bendAmount = THREE.MathUtils.clamp(velocity * 1.5, -0.4, 0.4);
+            // Apply amplified bend based on velocity
+            // Higher clamp value allows more extreme bending before stopping.
+            const bendAmount = THREE.MathUtils.clamp(velocity * 2.5, -0.8, 0.8);
             frontMat.uniforms.uBend.value = bendAmount;
             backMat.uniforms.uBend.value = -bendAmount;
 
