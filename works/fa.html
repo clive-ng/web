@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>First Aid Guide - Auto Scroll</title>
+    <title>First Aid Guide</title>
     <style>
-        /* Pure white background and hide scrollbar */
         body, html {
             margin: 0;
             padding: 0;
@@ -14,12 +13,10 @@
             flex-direction: column;
             align-items: center;
             overflow-x: hidden;
-            /* Hide scrollbar for IE/Edge/Firefox */
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
 
-        /* Hide scrollbar for Chrome/Safari */
         body::-webkit-scrollbar {
             display: none;
         }
@@ -40,9 +37,6 @@
             display: block;
             margin-bottom: 40px; 
             border-radius: 12px;
-            border: none;
-            box-shadow: none;
-            /* Smooth transition if images load or resize */
             transition: transform 0.3s ease-in-out;
         }
 
@@ -57,45 +51,34 @@
         <img src="fa01.jpg" alt="First Aid Principle and Victim Assessment">
         <img src="fa02.jpg" alt="Victim Assessment and Vital Signs">
         <img src="fa03.jpg" alt="ABCDE Assessment Method">
-
         <img src="fa04.jpg" alt="Suffocation and Choking">
         <img src="fa05.jpg" alt="Choking Causes and Symptoms">
         <img src="fa06.jpg" alt="Choking Treatment Flowchart">
-
         <img src="fa07.jpg" alt="Wounds and Bandaging">
         <img src="fa09.jpg" alt="Wound Care and Dressings">
         <img src="fa08.jpg" alt="Bandaging Techniques">
     </div>
 
     <script>
-        let scrollSpeed = 1; // Adjust this number to change speed (0.5 is slower, 2 is faster)
-        let isPaused = false;
-
-        // Pause scrolling when mouse is over the images
-        const container = document.getElementById('gallery');
-        container.addEventListener('mouseenter', () => isPaused = true);
-        container.addEventListener('mouseleave', () => isPaused = false);
+        // 1. Set your speed (Higher = Faster)
+        let scrollSpeed = 1; 
 
         function autoScroll() {
-            if (!isPaused) {
-                // 'behavior: smooth' combined with small increments creates the ease effect
-                window.scrollBy({
-                    top: scrollSpeed,
-                    left: 0,
-                    behavior: 'smooth' 
-                });
+            // 2. Perform the scroll without checking for hover/pause
+            window.scrollBy(0, scrollSpeed);
+
+            // 3. Loop back to top logic
+            // Using >= (document.body.offsetHeight - 2) helps account for sub-pixel rounding
+            if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight - 2) {
+                window.scrollTo(0, 0);
             }
 
-            // Loop back to top if reached the bottom
-            if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight) {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-
+            // 4. Smooth recursive call for high-performance animation
             requestAnimationFrame(autoScroll);
         }
 
-        // Start the scroll
-        autoScroll();
+        // Initialize on load
+        window.onload = autoScroll;
     </script>
 </body>
 </html>
