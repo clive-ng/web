@@ -3,14 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Festival of Hong Kong | Original Colors</title>
+    <title>Festival of Hong Kong | Physics Paper Effect</title>
     <style>
-        body { 
-            margin: 0; 
-            background-color: #CFD0CE; 
-            overflow: hidden; 
-            font-family: sans-serif; 
-        }
+        body { margin: 0; background-color: #CFD0CE; overflow: hidden; font-family: sans-serif; }
         #instructions {
             position: absolute; bottom: 20px; width: 100%;
             text-align: center; color: #333; opacity: 0.6;
@@ -21,7 +16,7 @@
 </head>
 <body>
 
-    <!-- <div id="instructions">Click and Drag to Spin • Scroll to Zoom</div> -->
+    <!-- <div id="instructions">Drag quickly to see the paper bend</div> -->
 
     <script type="importmap">
         {
@@ -42,43 +37,60 @@
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        
-        // CRITICAL: This ensures the renderer doesn't lighten/alter the colors
         renderer.toneMapping = THREE.NoToneMapping;
         renderer.outputColorSpace = THREE.SRGBColorSpace;
-        
         document.body.appendChild(renderer.domElement);
 
         const loader = new THREE.TextureLoader();
-        
-        // Load textures
         const frontTex = loader.load('hkf01.jpg');
         const backTex = loader.load('hkf02.jpg');
-
-        // Set color space on textures directly to match original JPGs
         frontTex.colorSpace = THREE.SRGBColorSpace;
         backTex.colorSpace = THREE.SRGBColorSpace;
-
-        // Correct the orientation of the back image
         backTex.center.set(0.5, 0.5);
         backTex.repeat.set(-1, 1);
 
-        // BasicMaterial ignores all scene lighting to keep original colors
-        const frontMat = new THREE.MeshBasicMaterial({ map: frontTex, transparent: true });
-        const backMat = new THREE.MeshBasicMaterial({ map: backTex, transparent: true });
+        // --- SHADER FOR PAPER BENDING ---
+        const vertexShader = `
+            varying vec2 vUv;
+            uniform float uBend;
+            void main() {
+                vUv = uv;
+                vec3 pos = position;
+                // Bend the corners based on drag velocity
+                // This creates a cylindrical curve effect
+                float dist = length(uv - 0.5);
+                pos.z += sin(uv.x * 3.14159) * uBend * dist;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+            }
+        `;
 
+        const fragmentShader = `
+            varying vec2 vUv;
+            uniform sampler2D uTexture;
+            void main() {
+                gl_FragColor = texture2D(uTexture, vUv);
+            }
+        `;
+
+        const frontMat = new THREE.ShaderMaterial({
+            uniforms: { uTexture: { value: frontTex }, uBend: { value: 0 } },
+            vertexShader, fragmentShader, side: THREE.FrontSide
+        });
+
+        const backMat = new THREE.ShaderMaterial({
+            uniforms: { uTexture: { value: backTex }, uBend: { value: 0 } },
+            vertexShader, fragmentShader, side: THREE.BackSide
+        });
+
+        // Use high-segment geometry so it has "joints" to bend
+        const geometry = new THREE.PlaneGeometry(3.2, 4.5, 32, 32);
         const posterGroup = new THREE.Group();
 
-        // FRONT PLANE
-        const frontPlane = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 4.5), frontMat);
+        const frontPlane = new THREE.Mesh(geometry, frontMat);
+        const backPlane = new THREE.Mesh(geometry, backMat);
+        
         posterGroup.add(frontPlane);
-
-        // BACK PLANE (Rotated and slightly offset to prevent flickering)
-        const backPlane = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 4.5), backMat);
-        backPlane.rotation.y = Math.PI;
-        backPlane.position.z = -0.005; 
         posterGroup.add(backPlane);
-
         scene.add(posterGroup);
 
         camera.position.z = 8;
@@ -86,11 +98,30 @@
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.autoRotate = true;
-        controls.autoRotateSpeed = 1.2;
+        controls.autoRotateSpeed = 1.0;
+
+        // --- VELOCITY TRACKING ---
+        let lastRotationY = 0;
+        let velocity = 0;
 
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
+
+            // Calculate how fast the poster is rotating
+            const currentRotationY = controls.getAzimuthalAngle();
+            const delta = currentRotationY - lastRotationY;
+            
+            // Normalize the delta and apply "lag" for physics feel
+            velocity += (delta - velocity) * 0.1;
+            lastRotationY = currentRotationY;
+
+            // Apply the bend based on velocity
+            // We limit the bend so it doesn't look like rubber
+            const bendAmount = THREE.MathUtils.clamp(velocity * 1.5, -0.4, 0.4);
+            frontMat.uniforms.uBend.value = bendAmount;
+            backMat.uniforms.uBend.value = -bendAmount;
+
             renderer.render(scene, camera);
         }
 
