@@ -5,15 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>First Aid Guide</title>
     <style>
-        /* Fill the browser window with a light warm grey background */
+        /* Pure white background and hide scrollbar for IE/Edge/Firefox */
         body, html {
             margin: 0;
             padding: 0;
-            background-color: #ffffff; /* Light Warm Grey / Stone */
+            background-color: #ffffff; 
             display: flex;
             flex-direction: column;
             align-items: center;
             overflow-x: hidden;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        body::-webkit-scrollbar {
+            display: none;
         }
 
         /* Container for the images */
@@ -23,20 +30,19 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 40px 20px; /* Increased top/bottom padding for a cleaner look */
+            padding: 40px 20px;
         }
 
-        /* Responsive image styling */
+        /* Responsive image styling with no shadow */
         img {
             width: 100%;
             height: auto;
-            max-width: 1100px; /* Slightly narrower for better readability on large screens */
+            max-width: 1100px;
             display: block;
             margin-bottom: 40px; 
-            border-radius: 12px; /* Slightly tighter radius for a modern feel */
+            border-radius: 12px;
             border: none;
-            /* Softer shadow for the lighter background
-            box-shadow: 0 15px 35px rgba(0,0,0,0.12);  */
+            box-shadow: none; /* Removed all shadows */
         }
 
         /* Remove the bottom margin from the very last image */
