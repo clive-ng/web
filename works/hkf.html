@@ -7,7 +7,6 @@
     <style>
         body { 
             margin: 0; 
-            /* Set HTML background to match your image */
             background-color: #CFD0CE; 
             overflow: hidden; 
             font-family: sans-serif; 
@@ -38,52 +37,38 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         const scene = new THREE.Scene();
-        
-        // Set Three.js scene background to match the hex code
         scene.background = new THREE.Color('#CFD0CE');
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        // Ensure color consistency
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         document.body.appendChild(renderer.domElement);
 
         const loader = new THREE.TextureLoader();
         
-        // Load local images
-        const frontTex = loader.load('hkf01.jpg');
-        const backTex = loader.load('hkf02.jpg');
+        // Use MeshBasicMaterial to prevent the "dimmed" look
+        const frontMat = new THREE.MeshBasicMaterial({ map: loader.load('hkf01.jpg') });
+        const backMat = new THREE.MeshBasicMaterial({ map: loader.load('hkf02.jpg') });
 
-        backTex.center.set(0.5, 0.5);
-        backTex.repeat.set(-1, 1); 
+        // Correct the orientation of the back image
+        backMat.map.center.set(0.5, 0.5);
+        backMat.map.repeat.set(-1, 1);
 
-        // POSTER MESH
-        const geometry = new THREE.BoxGeometry(3.2, 4.5, 0.05);
-        const materials = [
-            new THREE.MeshStandardMaterial({ color: 0x999999 }), // sides
-            new THREE.MeshStandardMaterial({ color: 0x999999 }), 
-            new THREE.MeshStandardMaterial({ color: 0x999999 }), 
-            new THREE.MeshStandardMaterial({ color: 0x999999 }), 
-            new THREE.MeshStandardMaterial({ map: frontTex, roughness: 0.7 }), 
-            new THREE.MeshStandardMaterial({ map: backTex, roughness: 0.7 })  
-        ];
+        // Create a group to hold the front and back planes
+        const posterGroup = new THREE.Group();
 
-        const poster = new THREE.Mesh(geometry, materials);
-        scene.add(poster);
+        // FRONT PLANE (Zero thickness)
+        const frontPlane = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 4.5), frontMat);
+        posterGroup.add(frontPlane);
 
-        // LIGHTING (Adjusted for a lighter background)
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.2); 
-        scene.add(ambientLight);
+        // BACK PLANE (Zero thickness, rotated 180 degrees)
+        const backPlane = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 4.5), backMat);
+        backPlane.rotation.y = Math.PI; // Flip it to face the back
+        backPlane.position.z = -0.001; // Tiny offset to prevent flickering (Z-fighting)
+        posterGroup.add(backPlane);
 
-        const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
-        mainLight.position.set(5, 5, 10);
-        scene.add(mainLight);
-
-        // Fill light to prevent the back from being too dark
-        const backLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        backLight.position.set(-5, -5, -10);
-        scene.add(backLight);
+        scene.add(posterGroup);
 
         camera.position.z = 8;
 
