@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scroll Sequence Animation</title>
+    <title>Scroll Sequence Animation - Full Screen</title>
     <style>
         body {
             margin: 0;
@@ -19,27 +19,60 @@
             left: 0;
             width: 100%;
             height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            overflow: hidden;
         }
 
         canvas {
-            max-width: 100vw;
-            max-height: 100vh;
-            object-fit: contain;
-        }
-
-        .helper-text {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            opacity: 0.5;
-            pointer-events: none;
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            /* We handle the "cover" logic inside the JS draw function */
         }
     </style>
+
+    <style>
+    body {
+        margin: 0;
+        background-color: #111;
+        font-family: sans-serif;
+        height: 500vh; /* Determines scroll duration */
+        
+        /* Hide scrollbar for IE, Edge and Firefox */
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    body::-webkit-scrollbar {
+        display: none;
+    }
+
+    html {
+        /* Ensure the hide carries over to the root */
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    
+    html::-webkit-webkit-scrollbar {
+        display: none;
+    }
+
+    .canvas-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+    }
+</style>
+    
 </head>
 <body>
 
@@ -47,14 +80,12 @@
         <canvas id="sequence-canvas"></canvas>
     </div>
 
-    <!-- <div class="helper-text">Scroll Down</div> -->
-
     <script>
         const canvas = document.getElementById("sequence-canvas");
         const context = canvas.getContext("2d");
+        const html = document.documentElement;
 
         const frameCount = 300;
-        // Function to format the filename based on index
         const currentFrame = index => (
             `./ezgif-frame-${index.toString().padStart(3, '0')}.jpg`
         );
@@ -62,27 +93,54 @@
         const images = [];
         const sequence = { frame: 0 };
 
-        // Preload images for smoothness
+        // Preload images
         for (let i = 1; i <= frameCount; i++) {
             const img = new Image();
             img.src = currentFrame(i);
             images.push(img);
         }
 
-        // Set initial canvas size once first image loads
-        images[0].onload = () => {
-            canvas.width = images[0].width;
-            canvas.height = images[0].height;
+        // Handle Resizing
+        function updateCanvasSize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
             render();
+        }
+
+        window.addEventListener('resize', updateCanvasSize);
+
+        images[0].onload = () => {
+            updateCanvasSize();
         };
 
         function render() {
+            const img = images[sequence.frame];
+            if (!img || !img.complete) return;
+
+            // Logic for "Cover" (fully occupy screen)
+            const canvasRatio = canvas.width / canvas.height;
+            const imgRatio = img.width / img.height;
+            
+            let drawWidth, drawHeight, offsetX, offsetY;
+
+            if (canvasRatio > imgRatio) {
+                // Canvas is wider than image (crop top/bottom)
+                drawWidth = canvas.width;
+                drawHeight = canvas.width / imgRatio;
+                offsetX = 0;
+                offsetY = (canvas.height - drawHeight) / 2;
+            } else {
+                // Canvas is taller than image (crop sides)
+                drawWidth = canvas.height * imgRatio;
+                drawHeight = canvas.height;
+                offsetX = (canvas.width - drawWidth) / 2;
+                offsetY = 0;
+            }
+
             context.clearRect(0, 0, canvas.width, canvas.height);
-            context.drawImage(images[sequence.frame], 0, 0);
+            context.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
         }
 
-        // Simple Easing Function (Ease Out Quad)
-        // Adjust this if you want a different "feel"
         function easeOutQuad(t) {
             return t * (2 - t);
         }
@@ -92,8 +150,6 @@
             const maxScrollTop = html.scrollHeight - window.innerHeight;
             const scrollFraction = scrollTop / maxScrollTop;
             
-            // Apply easing to the scroll fraction
-            // For standard linear scroll, remove the easeOutQuad wrapper
             const easedFraction = easeOutQuad(scrollFraction);
 
             const frameIndex = Math.min(
@@ -104,8 +160,6 @@
             sequence.frame = frameIndex;
             requestAnimationFrame(render);
         });
-
-        const html = document.documentElement;
     </script>
 </body>
 </html>
