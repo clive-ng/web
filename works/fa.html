@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>First Aid Guide</title>
+    <style>
+        /* Fill the browser window with a light warm grey background */
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff; /* Light Warm Grey / Stone */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* Container for the images */
+        .gallery-container {
+            width: 100%;
+            box-sizing: border-box; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px; /* Increased top/bottom padding for a cleaner look */
+        }
+
+        /* Responsive image styling */
+        img {
+            width: 100%;
+            height: auto;
+            max-width: 1100px; /* Slightly narrower for better readability on large screens */
+            display: block;
+            margin-bottom: 40px; 
+            border-radius: 12px; /* Slightly tighter radius for a modern feel */
+            border: none;
+            /* Softer shadow for the lighter background
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);  */
+        }
+
+        /* Remove the bottom margin from the very last image */
+        img:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="gallery-container">
+        <img src="FA01.jpg" alt="First Aid Principle and Victim Assessment">
+        <img src="FA02.jpg" alt="Victim Assessment and Vital Signs">
+        <img src="FA03.jpg" alt="ABCDE Assessment Method">
+
+        <img src="FA04.jpg" alt="Suffocation and Choking">
+        <img src="FA05.jpg" alt="Choking Causes and Symptoms">
+        <img src="FA06.jpg" alt="Choking Treatment Flowchart">
+
+        <img src="FA07.jpg" alt="Wounds and Bandaging">
+        <img src="FA09.jpg" alt="Wound Care and Dressings">
+        <img src="FA08.jpg" alt="Bandaging Techniques">
+    </div>
+
+</body>
+</html>
