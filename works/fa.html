@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>First Aid Guide</title>
+    <title>First Aid Guide - Auto Scroll</title>
     <style>
-        /* Pure white background and hide scrollbar for IE/Edge/Firefox */
+        /* Pure white background and hide scrollbar */
         body, html {
             margin: 0;
             padding: 0;
@@ -14,16 +14,16 @@
             flex-direction: column;
             align-items: center;
             overflow-x: hidden;
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+            /* Hide scrollbar for IE/Edge/Firefox */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
 
-        /* Hide scrollbar for Chrome, Safari and Opera */
+        /* Hide scrollbar for Chrome/Safari */
         body::-webkit-scrollbar {
             display: none;
         }
 
-        /* Container for the images */
         .gallery-container {
             width: 100%;
             box-sizing: border-box; 
@@ -33,7 +33,6 @@
             padding: 40px 20px;
         }
 
-        /* Responsive image styling with no shadow */
         img {
             width: 100%;
             height: auto;
@@ -42,10 +41,11 @@
             margin-bottom: 40px; 
             border-radius: 12px;
             border: none;
-            box-shadow: none; /* Removed all shadows */
+            box-shadow: none;
+            /* Smooth transition if images load or resize */
+            transition: transform 0.3s ease-in-out;
         }
 
-        /* Remove the bottom margin from the very last image */
         img:last-child {
             margin-bottom: 0;
         }
@@ -53,7 +53,7 @@
 </head>
 <body>
 
-    <div class="gallery-container">
+    <div class="gallery-container" id="gallery">
         <img src="fa01.jpg" alt="First Aid Principle and Victim Assessment">
         <img src="fa02.jpg" alt="Victim Assessment and Vital Signs">
         <img src="fa03.jpg" alt="ABCDE Assessment Method">
@@ -67,5 +67,35 @@
         <img src="fa08.jpg" alt="Bandaging Techniques">
     </div>
 
+    <script>
+        let scrollSpeed = 1; // Adjust this number to change speed (0.5 is slower, 2 is faster)
+        let isPaused = false;
+
+        // Pause scrolling when mouse is over the images
+        const container = document.getElementById('gallery');
+        container.addEventListener('mouseenter', () => isPaused = true);
+        container.addEventListener('mouseleave', () => isPaused = false);
+
+        function autoScroll() {
+            if (!isPaused) {
+                // 'behavior: smooth' combined with small increments creates the ease effect
+                window.scrollBy({
+                    top: scrollSpeed,
+                    left: 0,
+                    behavior: 'smooth' 
+                });
+            }
+
+            // Loop back to top if reached the bottom
+            if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            requestAnimationFrame(autoScroll);
+        }
+
+        // Start the scroll
+        autoScroll();
+    </script>
 </body>
 </html>
