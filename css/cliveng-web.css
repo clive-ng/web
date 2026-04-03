@@ -346,6 +346,7 @@ img {
 }
 
 .detail-image {
+  cursor: zoom-in;
   width: 100vw;
   margin-top: 30px;
   margin-bottom: 30px;
@@ -1801,6 +1802,21 @@ img {
   width: 100%;
 }
 
+.slide-5 {
+  height: auto;
+}
+
+.div-block-43 {
+  width: 100px;
+  height: auto;
+}
+
+.section-2 {
+  width: 100%;
+  height: 9000px;
+  overflow: auto;
+}
+
 @media screen and (max-width: 991px) {
   .heading-jumbo {
     font-size: 56px;
@@ -2220,7 +2236,7 @@ img {
   grid-area: Area;
 }
 
-#w-node-_83416fc3-d1c3-46ca-7a68-319dc7002f70-fa07ce40, #w-node-_83416fc3-d1c3-46ca-7a68-319dc7002f72-fa07ce40, #pop-image.w-node-_83416fc3-d1c3-46ca-7a68-319dc7002f74-fa07ce40, #pop-image.w-node-_83416fc3-d1c3-46ca-7a68-319dc7002f76-fa07ce40, #pop-image.w-node-_83416fc3-d1c3-46ca-7a68-319dc7002f78-fa07ce40, #pop-image.w-node-_83416fc3-d1c3-46ca-7a68-319dc7002f7a-fa07ce40, #pop-image.w-node-_83416fc3-d1c3-46ca-7a68-319dc7002f7c-fa07ce40, #iframe-trigger.w-node-d35b8168-59f6-edd1-835e-29af382a9a63-fa07ce40, #iframe-trigger.w-node-d35b8168-59f6-edd1-835e-29af382a9a65-fa07ce40, #w-node-d35b8168-59f6-edd1-835e-29af382a9a66-fa07ce40, #iframe-trigger.w-node-d35b8168-59f6-edd1-835e-29af382a9a69-fa07ce40, #w-node-d35b8168-59f6-edd1-835e-29af382a9a6a-fa07ce40 {
+#iframe-trigger.w-node-_83416fc3-d1c3-46ca-7a68-319dc7002f70-fa07ce40, #w-node-_83416fc3-d1c3-46ca-7a68-319dc7002f72-fa07ce40, #pop-image.w-node-_83416fc3-d1c3-46ca-7a68-319dc7002f74-fa07ce40, #pop-image.w-node-_83416fc3-d1c3-46ca-7a68-319dc7002f76-fa07ce40, #pop-image.w-node-_83416fc3-d1c3-46ca-7a68-319dc7002f78-fa07ce40, #pop-image.w-node-_83416fc3-d1c3-46ca-7a68-319dc7002f7a-fa07ce40, #pop-image.w-node-_83416fc3-d1c3-46ca-7a68-319dc7002f7c-fa07ce40, #iframe-trigger.w-node-d35b8168-59f6-edd1-835e-29af382a9a63-fa07ce40, #iframe-trigger.w-node-d35b8168-59f6-edd1-835e-29af382a9a65-fa07ce40, #w-node-d35b8168-59f6-edd1-835e-29af382a9a66-fa07ce40, #iframe-trigger.w-node-d35b8168-59f6-edd1-835e-29af382a9a69-fa07ce40, #w-node-d35b8168-59f6-edd1-835e-29af382a9a6a-fa07ce40 {
   grid-area: span 1 / span 1 / span 1 / span 1;
 }
 
