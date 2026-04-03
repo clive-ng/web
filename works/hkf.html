@@ -5,15 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Festival of Hong Kong 3D</title>
     <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; }
+        body { 
+            margin: 0; 
+            /* Set HTML background to match your image */
+            background-color: #CFD0CE; 
+            overflow: hidden; 
+            font-family: sans-serif; 
+        }
         #instructions {
             position: absolute; bottom: 20px; width: 100%;
-            text-align: center; color: white; opacity: 0.4;
+            text-align: center; color: #333; opacity: 0.6;
             pointer-events: none; text-transform: uppercase; font-size: 10px;
+            letter-spacing: 1px;
         }
     </style>
 </head>
 <body>
+
+    <div id="instructions">Click and Drag to Spin • Scroll to Zoom</div>
 
     <script type="importmap">
         {
@@ -29,57 +38,59 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         const scene = new THREE.Scene();
+        
+        // Set Three.js scene background to match the hex code
+        scene.background = new THREE.Color('#CFD0CE');
+
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        // Ensure color consistency
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
         document.body.appendChild(renderer.domElement);
 
-        // --- IMPROVED TEXTURE LOADING ---
-        const manager = new THREE.LoadingManager();
-        manager.onLoad = () => console.log('Textures loaded successfully!');
-        manager.onError = (url) => console.error('Error loading:', url);
-
-        const loader = new THREE.TextureLoader(manager);
+        const loader = new THREE.TextureLoader();
         
-        // Use your local filenames - Make sure they are in the SAME folder
+        // Load local images
         const frontTex = loader.load('hkf01.jpg');
         const backTex = loader.load('hkf02.jpg');
 
-        // High quality settings
-        [frontTex, backTex].forEach(t => {
-            t.anisotropy = renderer.capabilities.getMaxAnisotropy();
-            t.colorSpace = THREE.SRGBColorSpace;
-        });
-
         backTex.center.set(0.5, 0.5);
-        backTex.repeat.set(-1, 1); // Flip back text so it is readable
+        backTex.repeat.set(-1, 1); 
 
-        // --- POSTER ---
+        // POSTER MESH
         const geometry = new THREE.BoxGeometry(3.2, 4.5, 0.05);
         const materials = [
-            new THREE.MeshStandardMaterial({ color: 0x222222 }), // sides
-            new THREE.MeshStandardMaterial({ color: 0x222222 }), 
-            new THREE.MeshStandardMaterial({ color: 0x222222 }), 
-            new THREE.MeshStandardMaterial({ color: 0x222222 }), 
-            new THREE.MeshStandardMaterial({ map: frontTex, roughness: 0.8 }), // Front
-            new THREE.MeshStandardMaterial({ map: backTex, roughness: 0.8 })   // Back
+            new THREE.MeshStandardMaterial({ color: 0x999999 }), // sides
+            new THREE.MeshStandardMaterial({ color: 0x999999 }), 
+            new THREE.MeshStandardMaterial({ color: 0x999999 }), 
+            new THREE.MeshStandardMaterial({ color: 0x999999 }), 
+            new THREE.MeshStandardMaterial({ map: frontTex, roughness: 0.7 }), 
+            new THREE.MeshStandardMaterial({ map: backTex, roughness: 0.7 })  
         ];
 
         const poster = new THREE.Mesh(geometry, materials);
         scene.add(poster);
 
-        // --- LIGHTING ---
-        scene.add(new THREE.AmbientLight(0xffffff, 1.5));
-        const light = new THREE.DirectionalLight(0xffffff, 1);
-        light.position.set(5, 5, 10);
-        scene.add(light);
+        // LIGHTING (Adjusted for a lighter background)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.2); 
+        scene.add(ambientLight);
+
+        const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        mainLight.position.set(5, 5, 10);
+        scene.add(mainLight);
+
+        // Fill light to prevent the back from being too dark
+        const backLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        backLight.position.set(-5, -5, -10);
+        scene.add(backLight);
 
         camera.position.z = 8;
 
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.autoRotate = true;
-        controls.autoRotateSpeed = 1.5;
+        controls.autoRotateSpeed = 1.0;
 
         function animate() {
             requestAnimationFrame(animate);
