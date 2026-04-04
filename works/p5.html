@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>p5.js Bubble Sketch</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevents scrollbars */
+            background-color: #ffffff;
+        }
+        #p5-container {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="p5-container"></div>
+
+    <script>
+    let bubbles = [];
+
+    function setup() {
+        // Create the canvas and attach it to the container div
+        let canvas = createCanvas(windowWidth, windowHeight);
+        canvas.parent('p5-container');
+        
+        for (let i = 0; i < 4000; i++) {
+            bubbles[i] = {
+                x: width / 2,
+                y: height / 2,
+                display: function(size) {
+                    stroke(0, 0, 255);
+                    noFill();
+                    ellipse(this.x, this.y, size, size);
+                },
+                move: function(speed) {
+                    this.x += random(-speed, speed);
+                    this.y += random(-speed, speed);
+                }
+            };
+        }
+    }
+
+    function draw() {
+        background(255);
+        
+        // Map mouse position to speed and size
+        // If mouse is off-screen initially, it defaults to 0
+        let speed = map(mouseX, 0, width, 0.5, 10);
+        let size = map(mouseY, 0, height, 5, 60);
+        
+        for (let i = 0; i < bubbles.length; i++) {
+            bubbles[i].move(speed);
+            bubbles[i].display(size);
+        }
+    }
+
+    function windowResized() {
+        // Keeps the sketch full-screen if the window is resized
+        resizeCanvas(windowWidth, windowHeight);
+    }
+    </script>
+</body>
+</html>
