@@ -14,12 +14,12 @@
     let bubbles = [];
 
     function setup() {
-        // Use windowWidth/Height so it fills the iframe exactly
+        // This ensures the canvas matches the iframe size perfectly
         createCanvas(windowWidth, windowHeight);
         
         for (let i = 0; i < 4000; i++) {
             bubbles[i] = {
-                // We use functions for x and y so they can be re-centered
+                // Initialize at current center
                 x: width / 2,
                 y: height / 2,
                 display: function(size) {
@@ -47,13 +47,16 @@
         }
     }
 
-    // This is the secret sauce for Webflow/Iframes
+    // CRITICAL: This fixes the "stuck in corner" issue when Webflow resizes
     function windowResized() {
+        let oldW = width;
+        let oldH = height;
         resizeCanvas(windowWidth, windowHeight);
-        // Optional: Re-center existing bubbles if the window changes
+        
+        // Shift bubbles to the new center so they don't stay in the corner
         for (let b of bubbles) {
-            b.x = width / 2;
-            b.y = height / 2;
+            b.x += (width - oldW) / 2;
+            b.y += (height - oldH) / 2;
         }
     }
     </script>
