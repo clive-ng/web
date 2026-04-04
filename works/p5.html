@@ -3,35 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>p5.js Bubble Sketch</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden; /* Prevents scrollbars */
-            background-color: #ffffff;
-        }
-        #p5-container {
-            width: 100vw;
-            height: 100vh;
-        }
+        body { margin: 0; padding: 0; overflow: hidden; background: transparent; }
+        canvas { display: block; }
     </style>
 </head>
 <body>
-
-    <div id="p5-container"></div>
-
     <script>
     let bubbles = [];
 
     function setup() {
-        // Create the canvas and attach it to the container div
-        let canvas = createCanvas(windowWidth, windowHeight);
-        canvas.parent('p5-container');
+        // Use windowWidth/Height so it fills the iframe exactly
+        createCanvas(windowWidth, windowHeight);
         
         for (let i = 0; i < 4000; i++) {
             bubbles[i] = {
+                // We use functions for x and y so they can be re-centered
                 x: width / 2,
                 y: height / 2,
                 display: function(size) {
@@ -50,8 +38,6 @@
     function draw() {
         background(255);
         
-        // Map mouse position to speed and size
-        // If mouse is off-screen initially, it defaults to 0
         let speed = map(mouseX, 0, width, 0.5, 10);
         let size = map(mouseY, 0, height, 5, 60);
         
@@ -61,9 +47,14 @@
         }
     }
 
+    // This is the secret sauce for Webflow/Iframes
     function windowResized() {
-        // Keeps the sketch full-screen if the window is resized
         resizeCanvas(windowWidth, windowHeight);
+        // Optional: Re-center existing bubbles if the window changes
+        for (let b of bubbles) {
+            b.x = width / 2;
+            b.y = height / 2;
+        }
     }
     </script>
 </body>
