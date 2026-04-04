@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hybrid Religions - Auto Scroll</title>
+    <title>Hybrid Religions - Persistent Auto Scroll</title>
     <style>
         /* Updated background color to #bdbebf and hide scrollbar */
         body, html {
@@ -42,7 +42,6 @@
             border-radius: 12px;
             border: none;
             box-shadow: none;
-            /* Smooth transition if images load or resize */
             transition: transform 0.3s ease-in-out;
         }
 
@@ -62,32 +61,26 @@
     </div>
 
     <script>
-        let scrollSpeed = 1; // Adjust this number to change speed
-        let isPaused = false;
-
-        // Pause scrolling when mouse is over the images
-        const container = document.getElementById('gallery');
-        container.addEventListener('mouseenter', () => isPaused = true);
-        container.addEventListener('mouseleave', () => isPaused = false);
+        // Adjust this number for speed (0.5 for slow, 2 for fast)
+        const scrollSpeed = 1; 
 
         function autoScroll() {
-            if (!isPaused) {
-                window.scrollBy({
-                    top: scrollSpeed,
-                    left: 0,
-                    behavior: 'auto' // 'auto' often works smoother for constant frame-by-frame scrolling
-                });
-            }
+            // Constant scrolling
+            window.scrollBy(0, scrollSpeed);
 
-            // Loop back to top if reached the bottom
-            if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight - 2) {
-                window.scrollTo({ top: 0 });
+            // Loop back to top logic
+            // We check if the current scroll position + window height is near the bottom
+            const currentPosition = window.innerHeight + window.pageYOffset;
+            const threshold = document.body.offsetHeight - 1;
+
+            if (currentPosition >= threshold) {
+                window.scrollTo(0, 0);
             }
 
             requestAnimationFrame(autoScroll);
         }
 
-        // Start the scroll
+        // Start the scroll immediately
         autoScroll();
     </script>
 </body>
