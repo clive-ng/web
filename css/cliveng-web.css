@@ -119,8 +119,13 @@ img {
   margin-bottom: 30px;
 }
 
-.bodytext.top, .bodytext.play {
+.bodytext.top {
   margin-top: 30px;
+}
+
+.bodytext.play {
+  margin-top: 30px;
+  overflow: hidden;
 }
 
 .bodytext.slide {
@@ -231,7 +236,7 @@ img {
 .slider {
   background-color: #fff0;
   width: 100%;
-  height: 80vh;
+  height: 100%;
   margin-bottom: 0;
   display: block;
 }
@@ -328,6 +333,10 @@ img {
   overflow: auto;
 }
 
+.slide01.play {
+  overflow: auto;
+}
+
 .slide-2 {
   height: 11%;
   padding-top: 0;
@@ -356,6 +365,7 @@ img {
   width: 100vw;
   margin-top: 30px;
   margin-bottom: 30px;
+  overflow: hidden;
 }
 
 .image-12, .image-13 {
@@ -751,7 +761,16 @@ img {
   display: flex;
 }
 
-.youtube-3, .youtube-4, .youtube-5, .youtube-6 {
+.youtube-3 {
+  margin-top: 30px;
+}
+
+.youtube-4 {
+  margin-top: 30px;
+  overflow: hidden;
+}
+
+.youtube-5, .youtube-6 {
   margin-top: 30px;
 }
 
@@ -999,6 +1018,7 @@ img {
   padding-bottom: 30px;
   position: relative;
   inset: 0%;
+  overflow: hidden;
 }
 
 .rednering {
@@ -1009,6 +1029,7 @@ img {
 .code-embed-5 {
   width: 90%;
   height: 100vh;
+  overflow: hidden;
 }
 
 .code-embed-5.shk._100 {
@@ -1374,10 +1395,12 @@ img {
   align-items: center;
   height: 100vh;
   display: flex;
+  overflow: hidden;
 }
 
 ._90 {
   width: 90%;
+  overflow: hidden;
 }
 
 .slide-4 {
@@ -1542,10 +1565,12 @@ img {
   grid-auto-columns: 1fr;
   width: 100%;
   display: block;
+  overflow: hidden;
 }
 
 .image-82 {
   margin-top: 30px;
+  overflow: hidden;
 }
 
 .video-11 {
@@ -1557,6 +1582,7 @@ img {
   width: 100vw;
   margin-top: 30px;
   margin-bottom: 0;
+  overflow: hidden;
 }
 
 .b01 {
@@ -1590,10 +1616,12 @@ img {
 
 .project-description-grid-6.pop-image-grid.way {
   grid-template-rows: auto auto;
+  overflow: hidden;
 }
 
 .image-84 {
   margin-top: 30px;
+  overflow: hidden;
 }
 
 .bodytext-6 {
@@ -1604,6 +1632,7 @@ img {
   margin-bottom: 0;
   font-family: Montserrat, sans-serif;
   text-decoration: none;
+  overflow: hidden;
 }
 
 .image-85 {
@@ -1761,10 +1790,12 @@ img {
 .youtube-10 {
   margin-top: 30px;
   margin-bottom: 30px;
+  overflow: hidden;
 }
 
 .image-113, .image-114, .image-115 {
   margin-bottom: 30px;
+  overflow: hidden;
 }
 
 .bodytext-14 {
@@ -1775,10 +1806,12 @@ img {
   margin-bottom: 0;
   font-family: Montserrat, sans-serif;
   text-decoration: none;
+  overflow: hidden;
 }
 
 .image-116, .image-117 {
   margin-bottom: 30px;
+  overflow: hidden;
 }
 
 .bodytext-15 {
@@ -1789,6 +1822,7 @@ img {
   margin-bottom: 0;
   font-family: Montserrat, sans-serif;
   text-decoration: none;
+  overflow: hidden;
 }
 
 .div-block-42 {
@@ -1797,14 +1831,17 @@ img {
   justify-content: space-between;
   align-items: flex-start;
   display: flex;
+  overflow: hidden;
 }
 
 .image-118 {
   margin-top: auto;
+  overflow: hidden;
 }
 
 .image-119, .image-120 {
   margin-top: 30px;
+  overflow: hidden;
 }
 
 .bodytext-16 {
@@ -1815,18 +1852,22 @@ img {
   margin-bottom: 0;
   font-family: Montserrat, sans-serif;
   text-decoration: none;
+  overflow: hidden;
 }
 
 .image-121, .image-122 {
   margin-top: 30px;
+  overflow: hidden;
 }
 
 .image-123 {
   margin-top: auto;
+  overflow: hidden;
 }
 
 .image-124, .image-125, .image-126, .image-127 {
   margin-top: 30px;
+  overflow: hidden;
 }
 
 .bodytext-17, .bodytext-18 {
@@ -1837,10 +1878,12 @@ img {
   margin-bottom: 0;
   font-family: Montserrat, sans-serif;
   text-decoration: none;
+  overflow: hidden;
 }
 
 .image-128 {
   width: 100%;
+  overflow: hidden;
 }
 
 .slide-5 {
@@ -2220,7 +2263,7 @@ img {
   padding-right: 0;
 }
 
-.image-135 {
+.image-135, .image-136, .image-137, .image-138, .image-139, .image-140, .youtube-13, .image-141, .image-142, .image-143, .image-144, .image-145, .image-146, .image-147, .image-148, .image-149, .image-150, .image-151, .image-152, .image-153, .image-154, .image-155, .image-156, .image-157, .image-158, .image-159, .image-160, .image-161, .image-162, .image-163, .image-164, .image-165, .image-166, .image-167, .image-168, .image-169, .image-170, .image-171, .image-172, .image-173, .image-174, .image-175, .image-176, .image-177, .image-178, .image-179, .image-180, .image-181, .image-182, .image-183, .image-184, .image-135 {
   overflow: hidden;
 }
 
