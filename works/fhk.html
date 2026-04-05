@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Festival of Hong Kong 香港節</title>
+    <style>
+        /* Fill the browser window completely with a black background */
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: #000000; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* Container for the images and videos */
+        .gallery-container {
+            width: 100%;
+            /* Box-sizing ensures padding doesn't push the width over 100% */
+            box-sizing: border-box; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* 30px padding on all sides (Top, Bottom, Left, Right) */
+            padding: 30px; 
+        }
+
+        /* Responsive image and video styling */
+        img, iframe {
+            width: 100%;
+            max-width: 1200px;
+            display: block;
+            /* 30px gap between stacked elements */
+            margin-bottom: 30px; 
+            border-radius: 20px; /* 20px corner radius */
+            border: none;
+            /* Subtle dark shadow */
+            box-shadow: 0 10px 30px rgba(255,255,255,0.05); 
+        }
+
+        /* Maintain 16:9 aspect ratio for videos */
+        iframe {
+            aspect-ratio: 16 / 9;
+            height: auto;
+        }
+
+        /* Remove the bottom margin from the very last element */
+        .gallery-container *:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="gallery-container">
+        <img src="fhk01.jpg" alt="Gallery Image 1">
+        <img src="fhk02.jpg" alt="Gallery Image 2">
+        <img src="fhk03.jpg" alt="Gallery Image 3">
+        <img src="fhk04.jpg" alt="Gallery Image 4">
+        <img src="fhk05.jpg" alt="Gallery Image 5">
+        <img src="fhk06.jpg" alt="Gallery Image 6">
+        <img src="fhk07.jpg" alt="Gallery Image 7">
+        <img src="fhk08.jpg" alt="Gallery Image 8">
+        <img src="fhk09.jpg" alt="Gallery Image 9">
+        <img src="fhk10.jpg" alt="Gallery Image 10">
+        <img src="fhk11.jpg" alt="Gallery Image 11">
+
+        <iframe src="https://www.youtube.com/embed/GErcCMievGo" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        <iframe src="https://www.youtube.com/embed/IfrckWnldQg" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+    </div>
+
+</body>
+</html>
