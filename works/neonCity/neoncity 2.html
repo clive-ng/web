@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixed Architectural Scroll</title>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+    <style>
+        /* 1. Ensure the page is actually scrollable */
+        html, body {
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a;
+            height: 100%; /* Important base height */
+        }
+
+        #container { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100vh; 
+            z-index: 10;
+        }
+
+        model-viewer { 
+            width: 100%; 
+            height: 100%; 
+        }
+
+        /* 2. This creates the 'physical' space to scroll through */
+        .scroll-spacer { 
+            height: 800vh; /* 8 times the screen height */
+            position: relative; 
+            z-index: 1;
+            pointer-events: none; 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="container">
+        <model-viewer id="spinningModel" 
+            src="scene2.gltf" 
+            interaction-prompt="none"
+            camera-controls
+            disable-zoom
+            shadow-intensity="2"
+            camera-orbit="315deg 45deg 100%">
+        </model-viewer>
+    </div>
+
+    <div class="scroll-spacer"></div>
+
+    <script>
+        // Use DOMContentLoaded to make sure the model-viewer is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            const modelViewer = document.querySelector("#spinningModel");
+
+            window.addEventListener("scroll", () => {
+                // Get current scroll position
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+                
+                // Safety check: avoid division by zero
+                if (scrollHeight <= 0) return;
+
+                const scrollFraction = scrollTop / scrollHeight;
+                
+                let theta, phi, radius;
+                const startTheta = 315; 
+                const startPhi = 45;
+
+                // PHASE 1: Horizontal Turn (0% - 33%)
+                if (scrollFraction <= 0.33) {
+                    const p1 = scrollFraction / 0.33;
+                    theta = startTheta + (p1 * 45); 
+                    phi = startPhi;
+                    radius = 100 - (p1 * 20); 
+                } 
+                // PHASE 2: Window Zoom & Tilt (33% - 66%)
+                else if (scrollFraction <= 0.66) {
+                    const p2 = (scrollFraction - 0.33) / 0.33;
+                    theta = startTheta + 45; 
+                    phi = startPhi + (p2 * 45);
+                    radius = 80 - (p2 * 40); // Zoom in deep
+                } 
+                // PHASE 3: Pull Out & Snap (66% - 100%)
+                else {
+                    const p3 = (scrollFraction - 0.66) / 0.34;
+                    theta = (startTheta + 45) - (p3 * 45); 
+                    phi = 90 - (p3 * 45);
+                    radius = 40 + (p3 * 60); // Back to 100%
+                }
+
+                // Update the model
+                modelViewer.cameraOrbit = `${theta}deg ${phi}deg ${radius}%`;
+            });
+        });
+    </script>
+</body>
+</html>
