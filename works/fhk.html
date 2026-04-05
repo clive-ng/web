@@ -16,7 +16,7 @@
             overflow-x: hidden;
         }
 
-        /* Container for the images */
+        /* Container for the images and videos */
         .gallery-container {
             width: 100%;
             /* Box-sizing ensures padding doesn't push the width over 100% */
@@ -28,13 +28,12 @@
             padding: 30px; 
         }
 
-        /* Responsive image styling */
-        img {
+        /* Responsive image and video styling */
+        img, iframe {
             width: 100%;
-            height: auto;
             max-width: 1200px;
             display: block;
-            /* 30px gap between stacked images */
+            /* 30px gap between stacked elements */
             margin-bottom: 30px; 
             border-radius: 20px; /* 20px corner radius */
             border: none;
@@ -42,8 +41,14 @@
             box-shadow: 0 10px 30px rgba(255,255,255,0.05); 
         }
 
-        /* Remove the bottom margin from the very last image */
-        img:last-child {
+        /* Maintain 16:9 aspect ratio for videos */
+        iframe {
+            aspect-ratio: 16 / 9;
+            height: auto;
+        }
+
+        /* Remove the bottom margin from the very last element */
+        .gallery-container *:last-child {
             margin-bottom: 0;
         }
     </style>
@@ -62,6 +67,9 @@
         <img src="fhk09.jpg" alt="Gallery Image 9">
         <img src="fhk10.jpg" alt="Gallery Image 10">
         <img src="fhk11.jpg" alt="Gallery Image 11">
+
+        <iframe src="https://www.youtube.com/embed/GErcCMievGo" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        <iframe src="https://www.youtube.com/embed/IfrckWnldQg" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
     </div>
 
 </body>
