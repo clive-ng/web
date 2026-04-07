@@ -1,52 +1,114 @@
-<script>
-        const modelViewer = document.querySelector("#spinningModel");
-        const container = document.querySelector("#container");
-        const pageLoader = document.querySelector("#page-loader");
-        const loaderPercentage = document.querySelector("#loader-percentage");
-
-        // Helper function to hide the loader
-        function hideLoader() {
-            if (!pageLoader.classList.contains("loader-hidden")) {
-                pageLoader.classList.add("loader-hidden");
-            }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Journey into Gallery</title>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+    <style>
+        body { 
+            margin: 0; 
+            background-color: #1a1a1a; 
+            overflow-x: hidden;
         }
 
-        // --- LOADER LOGIC ---
-        // 1. Listen for normal loading progress
-        modelViewer.addEventListener("progress", (event) => {
-            const progress = Math.round(event.detail.totalProgress * 100);
-            
-            // Only update text if it's a valid number (sometimes it returns NaN initially)
-            if (!isNaN(progress)) {
-                loaderPercentage.textContent = `${progress}%`;
-            }
-            
-            // Hide the loader when fully loaded
-            if (event.detail.totalProgress === 1) {
-                setTimeout(hideLoader, 300);
-            }
-        });
+        /* 3D Model Section */
+        #container { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100vh; 
+            z-index: 10;
+            pointer-events: none; /* Allows scrolling through the model */
+        }
+        model-viewer { width: 100%; height: 100%; }
 
-        // 2. FAIL-SAFE: If the 3D model file is missing or broken
-        modelViewer.addEventListener("error", (error) => {
-            console.error("Error loading 3D model:", error);
-            loaderPercentage.textContent = "Skipping 3D...";
-            setTimeout(hideLoader, 800); // Hide loader anyway so the site remains usable
-        });
+        /* Scroll Runway for 3D */
+        .scroll-spacer { height: 600vh; }
 
-        // 3. FAIL-SAFE: Absolute Timeout
-        // If 8 seconds pass and the loader is still on screen, force it to hide.
-        setTimeout(() => {
-            hideLoader();
-        }, 8000);
+        /* Gallery and Video Section */
+        #gallery-section {
+            position: relative;
+            z-index: 20; /* Sits above the fixed 3D container */
+            background-color: #1a1a1a;
+            padding: 30px 0; /* Vertical padding */
+        }
 
-        // --- SCROLL LOGIC ---
+        .media-item {
+            display: block;
+            width: calc(100% - 60px); /* 100% width minus 30px margin on each side */
+            margin: 0 auto 30px auto; /* 30px margin bottom for spacing */
+            border-radius: 20px; /* 20px rounded corners */
+            overflow: hidden;
+        }
+
+        img.media-item {
+            height: auto;
+            object-fit: cover;
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="container">
+        <model-viewer id="spinningModel" 
+            src="scene2.gltf" 
+            interaction-prompt="none"
+            camera-controls
+            disable-zoom
+            exposure="0.8"
+            camera-orbit="315deg 45deg 100%">
+        </model-viewer>
+    </div>
+
+    <div class="scroll-spacer"></div>
+
+    <div id="gallery-section">
+        <img src="n01.jpg" class="media-item" alt="Gallery 1">
+        <img src="n02.jpg" class="media-item" alt="Gallery 2">
+        <img src="n03.jpg" class="media-item" alt="Gallery 3">
+        <img src="n04.jpg" class="media-item" alt="Gallery 4">
+        <img src="n05.jpg" class="media-item" alt="Gallery 5">
+        <img src="n06.jpg" class="media-item" alt="Gallery 6">
+        <img src="n07.jpg" class="media-item" alt="Gallery 7">
+
+        <div class="media-item video-container">
+            <iframe 
+                src="https://www.youtube.com/embed/WLXGmP1QTT4" 
+                title="YouTube video player" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
+        </div>
+    </div>
+
+    <script>
+        const modelViewer = document.querySelector("#spinningModel");
+        const container = document.querySelector("#container");
+
         window.addEventListener("scroll", () => {
             const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             const scrollFraction = scrollTop / scrollHeight;
 
-            // 1. Logic for 3D Camera 
+            // 1. Logic for 3D Camera (Standardized to the first half of the page)
+            // We multiply by 2 so the 3D journey finishes when we hit the images
             const journeyFraction = Math.min(scrollTop / (window.innerHeight * 5), 1);
             
             let theta, phi, radius;
@@ -71,7 +133,7 @@
 
             modelViewer.cameraOrbit = `${theta}deg ${phi}deg ${radius}%`;
 
-            // 2. Hide 3D model once we scroll deep into the gallery
+            // 2. Hide 3D model once we scroll deep into the gallery to save performance
             if (scrollTop > window.innerHeight * 6) {
                 container.style.display = "none";
             } else {
@@ -79,3 +141,5 @@
             }
         });
     </script>
+</body>
+</html>
