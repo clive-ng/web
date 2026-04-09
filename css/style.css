@@ -270,12 +270,24 @@ iframe,
 }
 
 /* --- Grid & Popups --- */
+
 .pop-image-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 30px;
   width: 100%;
 }
+
+
+    .pop-image-grid img {
+      cursor: zoom-in;
+      transition: transform 0.3s ease;
+    }
+    .pop-image-grid img:hover {
+      transform: scale(1.03);
+    }
+
+
 
 .custom-popup-wrapper {
   position: fixed;
