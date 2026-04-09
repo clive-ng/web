@@ -99,3 +99,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 });
+
+
+window.addEventListener('load', () => {
+  const loader = document.getElementById('loader-wrapper');
+  const text = document.getElementById('loading-text');
+  let percent = 0;
+
+  // Simulate progress counting up
+  const interval = setInterval(() => {
+    percent += 1;
+    text.innerText = percent + "%";
+    
+    if (percent >= 100) {
+      clearInterval(interval);
+      // Fade out and remove loader
+      loader.style.opacity = '0';
+      loader.style.transition = 'opacity 0.5s ease';
+      setTimeout(() => loader.style.display = 'none', 500);
+    }
+  }, 20); // Adjust speed here
+});
