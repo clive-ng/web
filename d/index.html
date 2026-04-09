@@ -72,6 +72,8 @@
             display: flex;
             justify-content: space-between;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            word-break: break-all;
+            gap: 16px;
         }
 
         .status-converting { color: #f59e0b; }
@@ -165,7 +167,8 @@
 
             } catch (error) {
                 console.error(error);
-                updateStatus(statusElement, 'Conversion Failed', 'status-error');
+                // Updated line to show the exact error message
+                updateStatus(statusElement, `Failed: ${error.message || error}`, 'status-error');
             }
         }
 
@@ -175,7 +178,7 @@
             const div = document.createElement('div');
             div.className = `status-item ${className}`;
             div.id = id;
-            div.innerHTML = `<span>${filename}</span> <span>${text}</span>`;
+            div.innerHTML = `<span><strong>${filename}</strong></span> <span>${text}</span>`;
             statusContainer.prepend(div);
             return id;
         }
