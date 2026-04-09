@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HEIC to JPG Converter 1.1</title>
+    <title>HEIC to JPG Converter</title>
     <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
     <style>
         body {
@@ -53,7 +53,6 @@
             pointer-events: none;
         }
 
-        /* Hidden file input for click-to-upload fallback */
         #file-input {
             display: none;
         }
@@ -79,6 +78,7 @@
         .status-converting { color: #f59e0b; }
         .status-success { color: #10b981; }
         .status-error { color: #ef4444; }
+        .status-info { color: #3b82f6; }
     </style>
 </head>
 <body>
@@ -98,11 +98,9 @@
         const fileInput = document.getElementById('file-input');
         const statusContainer = document.getElementById('status-container');
 
-        // Click to upload fallback
         dropZone.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 
-        // Drag and Drop Events
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.classList.add('dragover');
@@ -118,10 +116,8 @@
             handleFiles(e.dataTransfer.files);
         });
 
-        // Handle multiple files
         function handleFiles(files) {
             for (const file of files) {
-                // Check if file is HEIC/HEIF
                 const fileType = file.name.toLowerCase();
                 if (fileType.endsWith('.heic') || fileType.endsWith('.heif')) {
                     convertAndDownload(file);
@@ -131,48 +127,55 @@
             }
         }
 
-        // Conversion and Download Logic
+        function triggerDownload(blob, originalFilename) {
+            const newFilename = originalFilename.replace(/\.(heic|heif)$/i, '.jpg');
+            const downloadUrl = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = newFilename;
+            document.body.appendChild(link);
+            
+            link.click();
+            
+            document.body.removeChild(link);
+            URL.revokeObjectURL(downloadUrl);
+        }
+
         async function convertAndDownload(file) {
             const statusId = addStatus(file.name, 'Converting...', 'status-converting');
             const statusElement = document.getElementById(statusId);
 
             try {
-                // Convert using heic2any
                 const conversionResult = await heic2any({
                     blob: file,
                     toType: 'image/jpeg',
-                    quality: 0.8 // Adjust JPG quality (0.0 to 1.0)
+                    quality: 0.8
                 });
 
-                // Ensure result is a single Blob (heic2any can return an array for image sequences)
                 const jpgBlob = Array.isArray(conversionResult) ? conversionResult[0] : conversionResult;
-
-                // Create download link
-                const newFilename = file.name.replace(/\.(heic|heif)$/i, '.jpg');
-                const downloadUrl = URL.createObjectURL(jpgBlob);
-                
-                const link = document.createElement('a');
-                link.href = downloadUrl;
-                link.download = newFilename;
-                document.body.appendChild(link);
-                
-                // Auto Download
-                link.click();
-                
-                // Cleanup
-                document.body.removeChild(link);
-                URL.revokeObjectURL(downloadUrl);
-
-                updateStatus(statusElement, 'Success - Downloaded!', 'status-success');
+                triggerDownload(jpgBlob, file.name);
+                updateStatus(statusElement, 'Success - Converted!', 'status-success');
 
             } catch (error) {
                 console.error(error);
-                // Updated line to show the exact error message
-                updateStatus(statusElement, `Failed: ${error.message || error}`, 'status-error');
+                const errorStr = error.message || String(error);
+                
+                // Smart fallback: If the file is already a JPG disguised as a HEIC
+                if (errorStr.includes('already browser readable: image/jpeg')) {
+                    updateStatus(statusElement, 'Fixing extension (was already JPG)...', 'status-info');
+                    
+                    // Repackage the original file as a JPG blob and download it
+                    const fallbackBlob = new Blob([file], { type: 'image/jpeg' });
+                    triggerDownload(fallbackBlob, file.name);
+                    
+                    updateStatus(statusElement, 'Success - Saved as JPG!', 'status-success');
+                } else {
+                    updateStatus(statusElement, `Failed: ${errorStr}`, 'status-error');
+                }
             }
         }
 
-        // UI Status Helpers
         function addStatus(filename, text, className) {
             const id = 'status-' + Math.random().toString(36).substr(2, 9);
             const div = document.createElement('div');
