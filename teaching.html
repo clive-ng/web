@@ -25,6 +25,27 @@
       </feComponentTransfer>
     </filter>
   </svg>
+
+  <style>
+    .custom-popup-wrapper {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      cursor: zoom-out;
+      opacity: 0;
+      transition: background 0.6s ease, backdrop-filter 0.6s ease, opacity 0.6s;
+      backdrop-filter: blur(0px);
+      pointer-events: none;
+    }
+  </style>
+
 </head>
 
 <div id="loader-wrapper">
@@ -127,17 +148,17 @@
                 <div class="bodytext-5">UX Design project for the iF Design Award</div>
               </a></div>
 
-<div class="bw-image">
-  <iframe 
-    src="https://sarahshah18-gif.github.io/Elementary-A-Digital-Reader/" 
-    height="800px" 
-    style="border:none; width: 100%;">
-  </iframe>
-</div>
+            <div class="bw-image">
+              <iframe src="https://sarahshah18-gif.github.io/Elementary-A-Digital-Reader/" height="800px"
+                style="border:none; width: 100%;">
+              </iframe>
+            </div>
 
             <img src="images/Sarah_DnAD04.jpg" loading="lazy" sizes="(max-width: 1920px) 100vw, 1920px"
               srcset="images/Sarah_DnAD04-p-500.jpg 500w, images/Sarah_DnAD04-p-800.jpg 800w, images/Sarah_DnAD04-p-1080.jpg 1080w, images/Sarah_DnAD04-p-1600.jpg 1600w, images/Sarah_DnAD04.jpg 1920w"
-              alt="" class="bw-image" /><img src="images/Sarah_iF02.jpg" loading="lazy" sizes="100vw"
+              alt="" class="bw-image" />
+
+            <img src="images/Sarah_iF02.jpg" loading="lazy" sizes="100vw"
               srcset="images/Sarah_iF02-p-500.jpg 500w, images/Sarah_iF02-p-800.jpg 800w, images/Sarah_iF02-p-1080.jpg 1080w, images/Sarah_iF02-p-1600.jpg 1600w, images/Sarah_iF02-p-2000.jpg 2000w, images/Sarah_iF02-p-2600.jpg 2600w, images/Sarah_iF02-p-3200.jpg 3200w, images/Sarah_iF02.jpg 4107w"
               alt="" class="bw-image" />
 
@@ -162,13 +183,11 @@
               images/time-p-1600.png 1600w, images/time-p-2000.png 2000w, images/time-p-2600.png 2600w,
               images/time-p-3200.png 3200w, images/time.png 3928w" alt="" class="bw-image" />
 
-<div class="bw-image">
-  <iframe 
-    src="https://transcendence09.github.io/coinage/index.html" 
-    height="800px" 
-    style="border:none; width: 100%;">
-  </iframe>
-</div>
+            <div class="bw-image">
+              <iframe src="https://transcendence09.github.io/coinage/index.html" height="800px"
+                style="border:none; width: 100%;">
+              </iframe>
+            </div>
 
             <div class="w-layout-grid project-description-grid-5 pop-image-grid"><a href="#" target="_blank"
                 class="linkblock w-inline-block"><img src="images/IMG_2921.jpeg" loading="lazy"
@@ -730,28 +749,27 @@
             <img src="images/image-1_9.png" loading="lazy" sizes="(max-width: 1172px) 100vw, 1172px, 100vw"
               srcset="images/image-1_9-p-500.png 500w, images/image-1_9-p-800.png 800w, images/image-1_9-p-1080.png 1080w, images/image-1_9.png 1172w"
               alt="" class="bw-image">
-              <img src="images/image_7.png" loading="lazy"
-              sizes="(max-width: 1168px) 100vw, 1168px, 100vw"
+            <img src="images/image_7.png" loading="lazy" sizes="(max-width: 1168px) 100vw, 1168px, 100vw"
               srcset="images/image_7-p-500.png 500w, images/image_7-p-800.png 800w, images/image_7-p-1080.png 1080w, images/image_7.png 1168w"
               alt="" class="bw-image">
-              <img src="images/image-3_6.png" loading="lazy" sizes="(max-width: 1600px) 100vw, 1600px, 100vw"
-            srcset="images/image-3_6-p-500.png 500w, images/image-3_6-p-800.png 800w, images/image-3_6-p-1080.png 1080w, images/image-3_6.png 1600w"
-            alt="" class="bw-image">
+            <img src="images/image-3_6.png" loading="lazy" sizes="(max-width: 1600px) 100vw, 1600px, 100vw"
+              srcset="images/image-3_6-p-500.png 500w, images/image-3_6-p-800.png 800w, images/image-3_6-p-1080.png 1080w, images/image-3_6.png 1600w"
+              alt="" class="bw-image">
+
+
+          </div>
 
 
         </div>
 
 
+
+        <div class="left-arrow w-slider-arrow-left"><img src="images/btn.svg" loading="lazy" width="18" height="18"
+            alt="" /></div>
+        <div class="right-arrow w-slider-arrow-right"><img src="images/btn.svg" loading="lazy" width="18" height="18"
+            alt="" /></div>
+
       </div>
-
-
-
-      <div class="left-arrow w-slider-arrow-left"><img src="images/btn.svg" loading="lazy" width="18" height="18"
-          alt="" /></div>
-      <div class="right-arrow w-slider-arrow-right"><img src="images/btn.svg" loading="lazy" width="18" height="18"
-          alt="" /></div>
-
-  </div>
 
   </div>
 
@@ -764,6 +782,8 @@
   </div>
   </main>
   </div>
+
+
 
   <!-- External JavaScript -->
   <script src="js/script.js"></script>
