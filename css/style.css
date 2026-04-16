@@ -280,11 +280,13 @@ iframe,
 
 
     .pop-image-grid img {
-      cursor: zoom-in;
+cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18'><circle cx='9' cy='9' r='9' fill='%230000FF'/></svg>") 9 9, auto;
+}
       transition: transform 0.3s ease;
     }
     .pop-image-grid img:hover {
       transform: scale(1.03);
+
     }
 
 
@@ -465,6 +467,7 @@ iframe,
       background-color: rgba(0, 0, 0, 0.9);
       z-index: 9999;
       cursor: zoom-out;
+      
     }
 
     .popup-content {
