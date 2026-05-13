@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Takachiho Monitor Dashboard</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-zinc-950 text-white min-h-screen">
+
+  <div class="max-w-7xl mx-auto px-6 py-10">
+
+    <div class="flex items-center justify-between flex-wrap gap-4 mb-10">
+      <div>
+        <h1 class="text-5xl font-bold mb-3">
+          Takachiho Monitor
+        </h1>
+
+        <p class="text-zinc-400 text-lg">
+          Live website monitoring dashboard
+        </p>
+      </div>
+
+      <a
+        href="https://eipro.jp/takachiho1/eventCalendars/index"
+        target="_blank"
+        class="bg-white text-black px-6 py-3 rounded-2xl font-semibold"
+      >
+        Open Website
+      </a>
+    </div>
+
+    <div class="grid lg:grid-cols-4 gap-6 mb-8">
+
+      <div class="card">
+        <p class="label">Status</p>
+        <div class="flex items-center gap-3 mt-3">
+          <div class="w-4 h-4 rounded-full bg-emerald-500 animate-pulse"></div>
+          <h2 id="monitorStatus" class="text-3xl font-bold">
+            Running
+          </h2>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="label">Check Interval</p>
+        <h2 id="interval" class="text-3xl font-bold mt-3">
+          2 Minutes
+        </h2>
+      </div>
+
+      <div class="card">
+        <p class="label">Notification Email</p>
+        <h2 id="email" class="text-lg font-semibold mt-3 break-all">
+          Loading...
+        </h2>
+      </div>
+
+      <div class="card">
+        <p class="label">Last Updated</p>
+        <h2 id="lastUpdated" class="text-lg font-semibold mt-3">
+          Waiting...
+        </h2>
+      </div>
+
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-8">
+
+      <div class="lg:col-span-2 card">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-3xl font-bold mb-2">
+              Activity Logs
+            </h2>
+
+            <p class="text-zinc-400">
+              Latest monitoring activity and detected changes
+            </p>
+          </div>
+        </div>
+
+        <div id="logs" class="space-y-4"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="text-3xl font-bold mb-6">
+          Monitor Information
+        </h2>
+
+        <div class="space-y-5">
+
+          <div>
+            <p class="label mb-2">Target Website</p>
+            <a
+              id="targetLink"
+              target="_blank"
+              class="text-sky-400 break-all"
+            ></a>
+          </div>
+
+          <div>
+            <p class="label mb-2">Monitoring Engine</p>
+            <p class="text-lg">Puppeteer</p>
+          </div>
+
+          <div>
+            <p class="label mb-2">Notification System</p>
+            <p class="text-lg">Nodemailer</p>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

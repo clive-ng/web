@@ -1,0 +1,22 @@
+body {
+  font-family: Inter, sans-serif;
+}
+
+.card {
+  background: rgb(24 24 27);
+  border: 1px solid rgb(39 39 42);
+  border-radius: 24px;
+  padding: 24px;
+}
+
+.label {
+  color: rgb(161 161 170);
+  font-size: 14px;
+}
+
+.log-item {
+  border: 1px solid rgb(39 39 42);
+  border-radius: 20px;
+  padding: 20px;
+  background: rgb(9 9 11);
+}
