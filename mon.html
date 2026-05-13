@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Takachiho Website Monitor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen font-sans">
+
+  <div class="max-w-7xl mx-auto px-6 py-10">
+
+    <header class="mb-10">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 class="text-4xl font-bold tracking-tight">
+            Takachiho Website Monitor
+          </h1>
+          <p class="text-zinc-400 mt-2">
+            Monitor the Takachiho reservation website every 2 minutes and receive email notifications when changes are detected.
+          </p>
+        </div>
+
+        <a
+          href="https://eipro.jp/takachiho1/eventCalendars/index"
+          target="_blank"
+          class="bg-white text-black px-5 py-3 rounded-2xl font-medium hover:opacity-90 transition"
+        >
+          Open Website
+        </a>
+      </div>
+    </header>
+
+    <div class="grid lg:grid-cols-3 gap-6 mb-8">
+
+      <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-xl">
+        <p class="text-zinc-400 text-sm mb-2">Monitor Status</p>
+        <div class="flex items-center gap-3">
+          <div class="w-4 h-4 bg-emerald-500 rounded-full animate-pulse"></div>
+          <h2 class="text-2xl font-semibold">Running</h2>
+        </div>
+        <p class="mt-4 text-zinc-400 text-sm">
+          Website checks are running every 2 minutes.
+        </p>
+      </div>
+
+      <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-xl">
+        <p class="text-zinc-400 text-sm mb-2">Notification Email</p>
+        <h2 class="text-2xl font-semibold break-all">
+          amau@me.com
+        </h2>
+        <p class="mt-4 text-zinc-400 text-sm">
+          Email alerts are triggered whenever a page change is detected.
+        </p>
+      </div>
+
+      <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-xl">
+        <p class="text-zinc-400 text-sm mb-2">Current Interval</p>
+        <h2 class="text-2xl font-semibold">
+          Every 2 Minutes
+        </h2>
+        <p class="mt-4 text-zinc-400 text-sm">
+          Uses scheduled cron based monitoring.
+        </p>
+      </div>
+
+    </div>
+
+    <section class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 mb-8">
+      <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
+        <div>
+          <h2 class="text-3xl font-bold mb-2">
+            Monitoring Features
+          </h2>
+          <p class="text-zinc-400">
+            Production ready monitoring architecture for dynamic event pages.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
+
+        <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-5">
+          <div class="text-4xl mb-4">🌐</div>
+          <h3 class="text-xl font-semibold mb-2">Website Monitoring</h3>
+          <p class="text-zinc-400 text-sm leading-relaxed">
+            Automatically checks the Takachiho reservation website every 2 minutes.
+          </p>
+        </div>
+
+        <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-5">
+          <div class="text-4xl mb-4">🔔</div>
+          <h3 class="text-xl font-semibold mb-2">Email Alerts</h3>
+          <p class="text-zinc-400 text-sm leading-relaxed">
+            Sends instant notifications whenever reservation availability changes.
+          </p>
+        </div>
+
+        <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-5">
+          <div class="text-4xl mb-4">📸</div>
+          <h3 class="text-xl font-semibold mb-2">Screenshot Capture</h3>
+          <p class="text-zinc-400 text-sm leading-relaxed">
+            Optional screenshot logging whenever a page update is detected.
+          </p>
+        </div>
+
+        <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-5">
+          <div class="text-4xl mb-4">⚡</div>
+          <h3 class="text-xl font-semibold mb-2">Puppeteer Engine</h3>
+          <p class="text-zinc-400 text-sm leading-relaxed">
+            Reliable browser automation for JavaScript rendered websites.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="grid lg:grid-cols-2 gap-8 mb-8">
+
+      <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
+        <h2 class="text-3xl font-bold mb-6">
+          System Workflow
+        </h2>
+
+        <div class="space-y-5">
+
+          <div class="flex gap-4 items-start">
+            <div class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-semibold">
+              1
+            </div>
+            <div>
+              <h3 class="font-semibold text-lg">Fetch Website</h3>
+              <p class="text-zinc-400 text-sm mt-1">
+                Puppeteer opens the Takachiho event calendar page.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex gap-4 items-start">
+            <div class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-semibold">
+              2
+            </div>
+            <div>
+              <h3 class="font-semibold text-lg">Generate Hash</h3>
+              <p class="text-zinc-400 text-sm mt-1">
+                The HTML content is converted into a unique MD5 hash.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex gap-4 items-start">
+            <div class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-semibold">
+              3
+            </div>
+            <div>
+              <h3 class="font-semibold text-lg">Compare Changes</h3>
+              <p class="text-zinc-400 text-sm mt-1">
+                The new hash is compared with the previous saved version.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex gap-4 items-start">
+            <div class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center font-semibold">
+              4
+            </div>
+            <div>
+              <h3 class="font-semibold text-lg">Send Notification</h3>
+              <p class="text-zinc-400 text-sm mt-1">
+                If changes exist, an email notification is sent automatically.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
+        <h2 class="text-3xl font-bold mb-6">
+          Recommended Stack
+        </h2>
+
+        <div class="space-y-4">
+
+          <div class="flex items-center justify-between border border-zinc-800 rounded-2xl p-4">
+            <div>
+              <h3 class="font-semibold">Node.js</h3>
+              <p class="text-sm text-zinc-400">Backend runtime</p>
+            </div>
+            <span class="text-emerald-400 text-sm">Required</span>
+          </div>
+
+          <div class="flex items-center justify-between border border-zinc-800 rounded-2xl p-4">
+            <div>
+              <h3 class="font-semibold">Puppeteer</h3>
+              <p class="text-sm text-zinc-400">Browser automation</p>
+            </div>
+            <span class="text-emerald-400 text-sm">Required</span>
+          </div>
+
+          <div class="flex items-center justify-between border border-zinc-800 rounded-2xl p-4">
+            <div>
+              <h3 class="font-semibold">Nodemailer</h3>
+              <p class="text-sm text-zinc-400">Email delivery</p>
+            </div>
+            <span class="text-emerald-400 text-sm">Required</span>
+          </div>
+
+          <div class="flex items-center justify-between border border-zinc-800 rounded-2xl p-4">
+            <div>
+              <h3 class="font-semibold">Railway</h3>
+              <p class="text-sm text-zinc-400">Cloud deployment</p>
+            </div>
+            <span class="text-sky-400 text-sm">Recommended</span>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <section class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 mb-8">
+      <div class="flex items-center justify-between flex-wrap gap-4 mb-8">
+        <div>
+          <h2 class="text-3xl font-bold mb-2">
+            Sample Notification
+          </h2>
+          <p class="text-zinc-400">
+            Example email sent when changes are detected.
+          </p>
+        </div>
+      </div>
+
+      <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 overflow-x-auto">
+<pre class="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">Subject: Takachiho Website Updated
+
+The Takachiho event website has changed.
+
+Time: 2026-05-13 06:00
+
+URL:
+https://eipro.jp/takachiho1/eventCalendars/index
+
+Please check the website for updates.</pre>
+      </div>
+    </section>
+
+    <section class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 mb-8">
+      <h2 class="text-3xl font-bold mb-6">
+        Deployment Commands
+      </h2>
+
+      <div class="grid md:grid-cols-2 gap-6">
+
+        <div>
+          <h3 class="font-semibold text-xl mb-3">Install Dependencies</h3>
+          <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 overflow-x-auto">
+<pre class="text-sm">npm install puppeteer nodemailer node-cron dotenv crypto fs-extra</pre>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-xl mb-3">Run Monitor</h3>
+          <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-5 overflow-x-auto">
+<pre class="text-sm">node monitor.js</pre>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <footer class="border-t border-zinc-800 pt-8 pb-4 text-zinc-500 text-sm">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <p>
+          Takachiho Website Monitor Dashboard
+        </p>
+
+        <div class="flex items-center gap-4">
+          <a
+            href="https://railway.app"
+            target="_blank"
+            class="hover:text-white transition"
+          >
+            Railway
+          </a>
+
+          <a
+            href="https://render.com"
+            target="_blank"
+            class="hover:text-white transition"
+          >
+            Render
+          </a>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+</body>
+</html>
